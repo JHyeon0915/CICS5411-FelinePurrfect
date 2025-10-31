@@ -1,6 +1,6 @@
 import { ScrollView } from 'react-native';
 
-export default function HomeScreen() {
+export default function SearchScreen() {
   return (
     <ScrollView>
     </ScrollView>
