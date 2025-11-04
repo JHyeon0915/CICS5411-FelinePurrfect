@@ -53,6 +53,11 @@ export const catsApi = {
 
   // Update a cat
   updateCat: async (cat: CatResponse): Promise<CatResponse> => {
+    mockCats.forEach((c, index) => {
+      if (c.id === cat.id) {
+        mockCats[index] = cat;
+      }
+    });
     return cat;
     
     // const response = await fetch(`${API_URL}/cats/${cat.id}`, {

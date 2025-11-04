@@ -1,3 +1,313 @@
-export default function CatEditScreen() {
-  return (<></>);
+import { CustomButton } from '@/components/common/CustomButton';
+import { RequiredIndicator } from '@/components/common/RequiredIndicator';
+import { useCats, useUpdateCat } from '@/hooks/useCats';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+export default function EditCatScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data: cats = [], isLoading: catsLoading } = useCats();
+  const updateCatMutation = useUpdateCat();
+
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [sex, setSex] = useState<'male' | 'female'>('female');
+  const [weight, setWeight] = useState('');
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [adoptedDate, setAdoptedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const cat = cats.find(c => c.id === id);
+
+  // Load cat data when component mounts
+  useEffect(() => {
+    if (cat) {
+      setName(cat.name);
+      setAge(cat.age.toString());
+      setSex(cat.sex);
+      setWeight(cat.weight?.toString() || '');
+      setPhotoUri(cat.photoUri);
+      setAdoptedDate(new Date(cat.adoptedDate));
+    }
+  }, [cat]);
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission needed',
+        'Please grant camera roll permissions',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Go to Settings',
+            onPress: () => {
+              if (Platform.OS === 'ios') {
+                Linking.openURL('app-settings:');
+              } else {
+                Linking.openSettings();
+              }
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
+
+  const handleUpdate = () => {
+    if (!photoUri) {
+      Alert.alert('Error', 'Please add a photo of your cat');
+      return;
+    }
+
+    if (!name.trim()) {
+      Alert.alert('Error', 'Please enter a name for your cat');
+      return;
+    }
+
+    if (!age || isNaN(Number(age)) || Number(age) < 0) {
+      Alert.alert('Error', 'Please enter a valid age');
+      return;
+    }
+
+    const updatedCat = {
+      id,
+      name: name.trim(),
+      age: Number(age),
+      sex,
+      photoUri,
+      adoptedDate: adoptedDate.toISOString(),
+      weight: weight ? Number(weight) : null,
+    };
+
+    updateCatMutation.mutate(updatedCat, {
+      onSuccess: () => {
+        router.back();
+      },
+      onError: () => {
+        Alert.alert('Error', 'Failed to update cat. Please try again.');
+      },
+    });
+  };
+
+  if (catsLoading) {
+    return (
+      <View className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#9333ea" />
+      </View>
+    );
+  }
+
+  if (!cat) {
+    return (
+      <View className="flex-1 bg-white items-center justify-center px-6">
+        <FontAwesome6 name="cat" size={64} color="#d1d5db" />
+        <Text className="text-gray-800 text-xl font-bold mt-4">Cat not found</Text>
+        <Text className="text-gray-500 text-center mt-2">
+          This cat may have been removed
+        </Text>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="bg-purple-600 px-6 py-3 rounded-xl mt-6"
+        >
+          <Text className="text-white font-semibold">Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView className='flex-1' edges={['bottom']}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className='flex-1'>
+        <ScrollView className="flex-1 p-6" 
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
+          {/* Photo Picker */}
+          <View className='flex-row justify-center gap-x-1'>
+            <TouchableOpacity
+              onPress={pickImage}
+              className="w-32 h-32 bg-gray-100 rounded-2xl self-center mb-6 items-center justify-center overflow-hidden"
+            >
+              {photoUri ? (
+                <Image source={{ uri: photoUri }} className="w-full h-full" />
+              ) : (
+                <View className="items-center">
+                  <FontAwesome6 name="camera" size={32} color="#9ca3af" />
+                  <Text className="text-gray-500 text-sm mt-2">Add Photo</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <RequiredIndicator />
+          </View>
+  
+          {/* Name Input */}
+          <View className="mb-4">
+            <Text className="text-gray-700 font-semibold mb-2">
+              Name
+              <RequiredIndicator />
+            </Text>
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              placeholder="Enter cat's name"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800"
+            />
+          </View>
+  
+          {/* Age Input */}
+          <View className="mb-4">
+            <Text className="text-gray-700 font-semibold mb-2">
+              Age (years)
+              <RequiredIndicator />
+            </Text>
+            <TextInput
+              value={age}
+              onChangeText={setAge}
+              placeholder="0"
+              keyboardType="numeric"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800"
+            />
+          </View>
+  
+          {/* Sex Selection */}
+          <View className="mb-4">
+            <Text className="text-gray-700 font-semibold mb-2">
+              Sex
+              <RequiredIndicator />
+            </Text>
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={() => setSex('female')}
+                className={`flex-1 flex-row items-center justify-center py-3 rounded-xl border-2 ${
+                  sex === 'female'
+                    ? 'bg-pink-50 border-pink-500'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <FontAwesome6
+                  name="venus"
+                  size={18}
+                  color={sex === 'female' ? '#ec4899' : '#9ca3af'}
+                />
+                <Text
+                  className={`ml-2 font-semibold ${
+                    sex === 'female' ? 'text-pink-600' : 'text-gray-500'
+                  }`}
+                >
+                  Female
+                </Text>
+              </TouchableOpacity>
+  
+              <TouchableOpacity
+                onPress={() => setSex('male')}
+                className={`flex-1 flex-row items-center justify-center py-3 rounded-xl border-2 ${
+                  sex === 'male'
+                    ? 'bg-blue-50 border-blue-500'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <FontAwesome6
+                  name="mars"
+                  size={18}
+                  color={sex === 'male' ? '#3b82f6' : '#9ca3af'}
+                />
+                <Text
+                  className={`ml-2 font-semibold ${
+                    sex === 'male' ? 'text-blue-600' : 'text-gray-500'
+                  }`}
+                >
+                  Male
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+  
+          {/* Adopted Date */}
+          <View className="mb-4">
+            <Text className="text-gray-700 font-semibold mb-2">
+              Adopted Date
+              <RequiredIndicator />
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex-row items-center justify-between"
+            >
+              <Text className="text-gray-800">
+                {adoptedDate.toLocaleDateString()}
+              </Text>
+              <FontAwesome6 name="calendar" size={16} color="#9ca3af" />
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={adoptedDate}
+                mode="date"
+                display="compact"
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) {
+                    setAdoptedDate(selectedDate);
+                  }
+                }}
+                maximumDate={new Date()}
+              />
+            )}
+          </View>
+  
+          {/* Weight Input */}
+          <View className="mb-6">
+            <Text className="text-gray-700 font-semibold mb-2">
+              Weight (kg)
+            </Text>
+            <TextInput
+              value={weight}
+              onChangeText={setWeight}
+              placeholder="0.0"
+              keyboardType="decimal-pad"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800"
+            />
+          </View>
+  
+          {/* Update Button */}
+          <CustomButton
+            content={updateCatMutation.isPending ? 'Updating...' : 'Update Cat'}
+            onPress={handleUpdate}
+            disabled={updateCatMutation.isPending}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }

@@ -4,13 +4,13 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function CatDetailScreen() {
@@ -43,7 +43,7 @@ export default function CatDetailScreen() {
 
   const goToEdit = () => {
     setMenuVisible(false);
-    router.push(`/(screens)/my-cats/[${id}]/edit`);
+    router.push(`/(screens)/my-cats/${id}/edit`);
   };
 
 const handleDelete = () => {
