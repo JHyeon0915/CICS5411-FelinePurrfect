@@ -14,12 +14,17 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             contentStyle: { backgroundColor: 'white' },
+            headerBackTitle: 'Back',
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="(screens)/my-cats/create"
-            options={{ title: 'Add New Cat', headerBackTitle: 'Back' }}
+            options={{ title: 'Add New Cat' }}
+          />
+          <Stack.Screen
+            name="(screens)/my-cats/[id]"
+            options={{ title: 'My Cat Details' }}
           />
         </Stack>
         <StatusBar style="auto" />

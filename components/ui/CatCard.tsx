@@ -1,5 +1,6 @@
 import { CatResponse } from '@/types/cat';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { router } from 'expo-router';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 interface CatCardProps {
@@ -28,7 +29,7 @@ export function CatCard({ cat, onPress }: CatCardProps) {
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={onPress ? onPress : () => {router.push(`/(screens)/my-cats/${cat.id}`)}}
       className="bg-white shadow-sm mb-4 overflow-hidden active:opacity-80 border border-gray-light rounded-2xl"
       activeOpacity={0.8}
     >
