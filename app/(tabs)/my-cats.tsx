@@ -1,20 +1,17 @@
 import { CustomButton } from '@/components/common/CustomButton';
+import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { CatCard } from '@/components/ui/CatCard';
 import { Colors } from '@/constants/colors';
 import { useCats } from '@/hooks/useCats';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router } from 'expo-router';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
 export default function MyCatsScreen() {
   const { data: cats = [], isLoading, error } = useCats();
 
   if (isLoading) {
-    return (
-      <View className="flex-1 bg-gray-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#9333ea" />
-      </View>
-    );
+    return (<LoadingIndicator />);
   }
 
   if (error) {

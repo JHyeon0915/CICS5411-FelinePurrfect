@@ -1,10 +1,10 @@
+import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { Menu } from '@/components/common/Menu';
 import { useCats, useDeleteCat } from '@/hooks/useCats';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -75,11 +75,7 @@ const handleDelete = () => {
   };
 
   if (isLoading) {
-    return (
-      <View className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#9333ea" />
-      </View>
-    );
+    return (<LoadingIndicator />);
   }
 
   if (!cat) {

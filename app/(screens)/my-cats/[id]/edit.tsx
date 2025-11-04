@@ -1,4 +1,5 @@
 import { CustomButton } from '@/components/common/CustomButton';
+import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { RequiredIndicator } from '@/components/common/RequiredIndicator';
 import { useCats, useUpdateCat } from '@/hooks/useCats';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -7,7 +8,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -124,11 +124,7 @@ export default function EditCatScreen() {
   };
 
   if (catsLoading) {
-    return (
-      <View className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#9333ea" />
-      </View>
-    );
+    return (<LoadingIndicator />);
   }
 
   if (!cat) {
