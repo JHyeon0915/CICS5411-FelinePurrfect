@@ -1,3 +1,4 @@
+import { ErrorView } from '@/components/common/ErrorView';
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { Menu } from '@/components/common/Menu';
 import { useCats, useDeleteCat } from '@/hooks/useCats';
@@ -80,19 +81,7 @@ const handleDelete = () => {
 
   if (!cat) {
     return (
-      <View className="flex-1 bg-white items-center justify-center px-6">
-        <FontAwesome6 name="cat" size={64} color="#d1d5db" />
-        <Text className="text-gray-800 text-xl font-bold mt-4">Cat not found</Text>
-        <Text className="text-gray-500 text-center mt-2">
-          This cat may have been removed
-        </Text>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="bg-purple-600 px-6 py-3 rounded-xl mt-6"
-        >
-          <Text className="text-white font-semibold">Go Back</Text>
-        </TouchableOpacity>
-      </View>
+      <ErrorView message="This cat may have been removed. Please go back and try again." />
     );
   }
 

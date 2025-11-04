@@ -1,4 +1,5 @@
 import { CustomButton } from '@/components/common/CustomButton';
+import { ErrorView } from '@/components/common/ErrorView';
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { CatCard } from '@/components/ui/CatCard';
 import { Colors } from '@/constants/colors';
@@ -15,11 +16,7 @@ export default function MyCatsScreen() {
   }
 
   if (error) {
-    return (
-      <View className="flex-1 bg-gray-50 items-center justify-center px-6">
-        <Text className="text-red-600 text-center">Error loading cats</Text>
-      </View>
-    );
+    return (<ErrorView message="Error loading cats. Please try again." />);
   }
 
   return (
