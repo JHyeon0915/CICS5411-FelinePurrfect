@@ -31,12 +31,12 @@ export function Menu({ visible, onDismiss, anchor, items }: MenuProps) {
           className="flex-1 bg-black/30" 
           onPress={onDismiss}
         >
-          <View className="absolute top-24 right-8 bg-white rounded-xl shadow-lg overflow-hidden min-w-[180px]">
+          <View className="absolute top-28 right-8 bg-white rounded-xl shadow-lg overflow-hidden min-w-[150px]">
             {items.map((item, index) => (
               <TouchableOpacity
                 key={index}
                 onPress={item.onPress}
-                className={`flex-row items-center px-4 py-3 active:bg-gray-100 ${
+                className={`flex-row items-center px-6 py-4 active:bg-gray-100 ${
                   index !== items.length - 1 ? 'border-b border-gray-100' : ''
                 }`}
               >
