@@ -1,17 +1,16 @@
 import { CustomButton } from '@/components/common/CustomButton';
 import { RequiredIndicator } from '@/components/common/RequiredIndicator';
 import { useAddCat } from '@/hooks/useCats';
+import { useImagePicker } from '@/hooks/useImagePicker';
 import { CatRequest } from '@/types/cat';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
   Image,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   ScrollView,
   Text,
@@ -26,52 +25,14 @@ export default function CreateCatScreen() {
   const [age, setAge] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('female');
   const [weight, setWeight] = useState('');
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [adoptedDate, setAdoptedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const addCatMutation = useAddCat();
-
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission needed',
-        'Please grant camera roll permissions',
-            [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Go to Settings',
-          onPress: () => {
-            if (Platform.OS === 'ios') {
-              Linking.openURL('app-settings:');
-            } else {
-              Linking.openSettings();
-            }
-          },
-        },
-      ]);
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      setPhotoUri(result.assets[0].uri);
-    }
-  };
+   const { imageUri, pickImage, isPickingImage } = useImagePicker();
 
   const handleAdd = () => {
-    if (!photoUri) {
+    if (!imageUri) {
       Alert.alert('Error', 'Please add a photo of your cat');
       return;
     }
@@ -90,7 +51,7 @@ export default function CreateCatScreen() {
       name: name.trim(),
       age: Number(age),
       sex,
-      photoUri,
+      photoUri: imageUri,
       adoptedDate: adoptedDate.toISOString(),
       weight: weight ? Number(weight) : null,
     };
@@ -115,10 +76,11 @@ export default function CreateCatScreen() {
           <View className='flex-row justify-center gap-x-1'>
             <TouchableOpacity
               onPress={pickImage}
+              disabled={isPickingImage}
               className="w-32 h-32 bg-gray-100 rounded-2xl self-center mb-6 items-center justify-center overflow-hidden"
             >
-              {photoUri ? (
-                <Image source={{ uri: photoUri }} className="w-full h-full" />
+              {imageUri ? (
+                <Image source={{ uri: imageUri }} className="w-full h-full" />
               ) : (
                 <View className="items-center">
                   <FontAwesome6 name="camera" size={32} color="#9ca3af" />
