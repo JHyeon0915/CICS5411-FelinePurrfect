@@ -1,4 +1,5 @@
 import { CustomButton } from '@/components/common/CustomButton';
+import { RequiredIndicator } from '@/components/common/RequiredIndicator';
 import { useAddCat } from '@/hooks/useCats';
 import { CatRequest } from '@/types/cat';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -125,12 +126,15 @@ export default function CreateCatScreen() {
                 </View>
               )}
             </TouchableOpacity>
-            <Text>*</Text>
+            <RequiredIndicator />
           </View>
   
           {/* Name Input */}
           <View className="mb-4">
-            <Text className="text-gray-700 font-semibold mb-2">Name *</Text>
+            <Text className="text-gray-700 font-semibold mb-2">
+              Name
+              <RequiredIndicator />
+            </Text>
             <TextInput
               value={name}
               onChangeText={setName}
@@ -141,7 +145,10 @@ export default function CreateCatScreen() {
   
           {/* Age Input */}
           <View className="mb-4">
-            <Text className="text-gray-700 font-semibold mb-2">Age (years) *</Text>
+            <Text className="text-gray-700 font-semibold mb-2">
+              Age (years)
+              <RequiredIndicator />
+            </Text>
             <TextInput
               value={age}
               onChangeText={setAge}
@@ -153,7 +160,10 @@ export default function CreateCatScreen() {
   
           {/* Sex Selection */}
           <View className="mb-4">
-            <Text className="text-gray-700 font-semibold mb-2">Sex *</Text>
+            <Text className="text-gray-700 font-semibold mb-2">
+              Sex
+              <RequiredIndicator />
+            </Text>
             <View className="flex-row gap-3">
               <TouchableOpacity
                 onPress={() => setSex('female')}
@@ -203,7 +213,10 @@ export default function CreateCatScreen() {
   
           {/* Adopted Date */}
           <View className="mb-4">
-            <Text className="text-gray-700 font-semibold mb-2">Adopted Date *</Text>
+            <Text className="text-gray-700 font-semibold mb-2">
+              Adopted Date
+              <RequiredIndicator />
+            </Text>
             <TouchableOpacity
               onPress={() => setShowDatePicker(true)}
               className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex-row items-center justify-between"
