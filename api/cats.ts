@@ -2,11 +2,32 @@ import { CatRequest, CatResponse } from '@/types/cat';
 
 const API_URL = 'https://your-api.com';
 
+const mockCats: CatResponse[] = [
+  {
+    id: '1',
+    name: 'Luna',
+    photoUri: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400',
+    age: 3,
+    sex: 'female',
+    adoptedDate: new Date('2022-03-15').toISOString(),
+    weight: 4.2,
+  },
+  {
+    id: '2',
+    name: 'Milo',
+    photoUri: 'https://unsplash.com/photos/white-kitten-Tn8DLxwuDMA?w=400',
+    age: 2,
+    sex: 'male',
+    adoptedDate: new Date('2023-01-20').toISOString(),
+    weight: 5.1,
+  },
+];
+
 export const catsApi = {
   // Get all cats
   getCats: async (): Promise<CatResponse[]> => {
     // Mock data for now
-    const mockCats: CatResponse[] = [];
+    // const mockCats: CatResponse[] = [];
     return mockCats;
     
     // const response = await fetch(`${API_URL}/cats`);

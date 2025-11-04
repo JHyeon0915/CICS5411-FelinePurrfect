@@ -1,20 +1,13 @@
 import { CustomButton } from '@/components/common/CustomButton';
 import { CatCard } from '@/components/ui/CatCard';
 import { Colors } from '@/constants/colors';
-import { useAddCat, useCats } from '@/hooks/useCats';
-import { CatRequest } from '@/types/cat';
+import { useCats } from '@/hooks/useCats';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router } from 'expo-router';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 
 export default function MyCatsScreen() {
-  // React Query hooks
   const { data: cats = [], isLoading, error } = useCats();
-  const addCatMutation = useAddCat();
-
-  const handleAddCat = (cat: CatRequest) => {
-    addCatMutation.mutate(cat);
-  };
 
   if (isLoading) {
     return (
@@ -33,7 +26,7 @@ export default function MyCatsScreen() {
   }
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-white">
       {/* Cat List */}
       <ScrollView className="flex-1 px-6 pt-6">
         {cats.length === 0 ? (

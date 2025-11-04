@@ -29,21 +29,18 @@ export function CatCard({ cat, onPress }: CatCardProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden active:opacity-80"
+      className="bg-white shadow-sm mb-4 overflow-hidden active:opacity-80 border border-gray-light rounded-2xl"
+      activeOpacity={0.8}
     >
-      <View className="flex-row">
+      <View className="flex-row h-32">
         {/* Cat Photo */}
-        <View className="w-24 h-24 bg-gray-200">
-          {cat.photoUri ? (
+        <View className="h-full aspect-square bg-primary">
+          {cat.photoUri && (
             <Image
               source={{ uri: cat.photoUri }}
               className="w-full h-full"
               resizeMode="cover"
             />
-          ) : (
-            <View className="w-full h-full items-center justify-center bg-purple-100">
-              <FontAwesome6 name="cat" size={32} color="#a855f7" />
-            </View>
           )}
         </View>
 
