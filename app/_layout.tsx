@@ -23,8 +23,8 @@ export default function RootLayout() {
             options={{ title: 'Add New Cat' }}
           />
           <Stack.Screen
-            name="(screens)/my-cats/[id]"
-            options={{ title: 'My Cat Details' }}
+            name="(screens)/my-cats/[id]/edit"
+            options={{ title: 'Edit Cat' }}
           />
         </Stack>
         <StatusBar style="auto" />

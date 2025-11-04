@@ -1,11 +1,23 @@
-import { useCats } from '@/hooks/useCats';
+import { Menu } from '@/components/common/Menu';
+import { useCats, useDeleteCat } from '@/hooks/useCats';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function CatDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: cats = [], isLoading } = useCats();
+  const [menuVisible, setMenuVisible] = useState(false);
+  const deleteCatMutation = useDeleteCat();
 
   const cat = cats.find(c => c.id === id);
 
@@ -27,6 +39,39 @@ export default function CatDetailScreen() {
       const months = Math.floor((diffDays % 365) / 30);
       return months > 0 ? `${years}y ${months}m` : `${years} year${years > 1 ? 's' : ''}`;
     }
+  };
+
+  const goToEdit = () => {
+    setMenuVisible(false);
+    router.push(`/(screens)/my-cats/[${id}]/edit`);
+  };
+
+const handleDelete = () => {
+    setMenuVisible(false);
+    Alert.alert(
+      'Delete Cat',
+      `Are you sure you want to remove ${cat?.name} from your cats?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            deleteCatMutation.mutate(id, {
+              onSuccess: () => {
+                router.back();
+              },
+              onError: () => {
+                Alert.alert('Error', 'Failed to delete cat. Please try again.');
+              },
+            });
+          },
+        },
+      ]
+    );
   };
 
   if (isLoading) {
@@ -56,6 +101,37 @@ export default function CatDetailScreen() {
   }
 
   return (
+    <>
+    <Stack.Screen
+        options={{
+          title: cat.name,
+          headerRight: () => (
+            <Menu
+              visible={menuVisible}
+              onDismiss={() => setMenuVisible(false)}
+              anchor={
+                <TouchableOpacity onPress={() => setMenuVisible(true)} className='px-4'>
+                  <FontAwesome6 name="ellipsis-vertical" size={24} color="black" />
+                </TouchableOpacity>
+              }
+              items={[
+                {
+                  title: 'Edit',
+                  icon: 'pen-to-square',
+                  onPress: goToEdit,
+                },
+                {
+                  title: 'Delete',
+                  icon: 'trash',
+                  onPress: handleDelete,
+                  destructive: true,
+                },
+              ]}
+            />
+          ),
+        }}
+      />
+    
     <View className="flex-1 bg-white">
       <ScrollView className="flex-1">
         {/* Header Image */}
@@ -159,5 +235,6 @@ export default function CatDetailScreen() {
         </View>
       </ScrollView>
     </View>
+    </>
   );
 }
