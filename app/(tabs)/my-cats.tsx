@@ -1,0 +1,63 @@
+import { CustomButton } from '@/components/common/CustomButton';
+import { CatCard } from '@/components/ui/CatCard';
+import { Colors } from '@/constants/colors';
+import { useAddCat, useCats } from '@/hooks/useCats';
+import { CatRequest } from '@/types/cat';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { router } from 'expo-router';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+
+export default function MyCatsScreen() {
+  // React Query hooks
+  const { data: cats = [], isLoading, error } = useCats();
+  const addCatMutation = useAddCat();
+
+  const handleAddCat = (cat: CatRequest) => {
+    addCatMutation.mutate(cat);
+  };
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-gray-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#9333ea" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className="flex-1 bg-gray-50 items-center justify-center px-6">
+        <Text className="text-red-600 text-center">Error loading cats</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1">
+      {/* Cat List */}
+      <ScrollView className="flex-1 px-6 pt-6">
+        {cats.length === 0 ? (
+          <View className="items-center justify-center py-20">
+            <View className="w-32 h-32 bg-primary-200 rounded-full items-center justify-center mb-4">
+              <FontAwesome6 name="cat" size={64} color={Colors.primary[500]} />
+            </View>
+            <Text className="text-gray-800 text-xl font-bold mb-2">
+              No cats yet
+            </Text>
+            <Text className="text-gray-500 text-center mb-6">
+              Add your first furry friend to get started!
+            </Text>
+            <CustomButton
+              content="Add Your First Cat"
+              onPress={() => router.push('/(screens)/my-cats/create')}
+              className='px-8 py-3'
+              textClassName='font-semibold'
+            />
+          </View>
+        ) : (
+          cats.map((cat) => <CatCard key={cat.id} cat={cat} />)
+        )}
+      </ScrollView>
+    </View>
+  );
+}
