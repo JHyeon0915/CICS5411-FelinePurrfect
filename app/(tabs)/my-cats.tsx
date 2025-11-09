@@ -1,7 +1,7 @@
 import { CustomButton } from '@/components/common/CustomButton';
 import { ErrorView } from '@/components/common/ErrorView';
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
-import { CatCard } from '@/components/ui/CatCard';
+import { AddCatCard, CatCard } from '@/components/ui/CatCard';
 import { Colors } from '@/constants/colors';
 import { useCats } from '@/hooks/useCats';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -42,7 +42,10 @@ export default function MyCatsScreen() {
             />
           </View>
         ) : (
-          cats.map((cat) => <CatCard key={cat.id} cat={cat} />)
+          <>
+            {cats.map((cat) => <CatCard key={cat.id} cat={cat} />)}
+            <AddCatCard onPress={() => router.push('/(screens)/my-cats/create')} />
+          </>
         )}
       </ScrollView>
     </View>
