@@ -47,7 +47,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="mycats"
+        name="my-cats"
         options={{
           title: 'My Cats',
           tabBarLabel: 'My Cats',
