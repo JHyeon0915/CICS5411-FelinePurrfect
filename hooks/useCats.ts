@@ -9,6 +9,7 @@ export function useCats() {
   return useQuery({
     queryKey: CATS_QUERY_KEY,
     queryFn: catsApi.getCats,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 
@@ -37,7 +38,22 @@ export function useUpdateCat() {
   
   return useMutation({
     mutationFn: catsApi.updateCat,
-    onSuccess: () => {
+    onMutate: async (updatedCat) => {
+      await queryClient.cancelQueries({ queryKey: CATS_QUERY_KEY });
+      const previousCats = queryClient.getQueryData<CatResponse[]>(CATS_QUERY_KEY);
+      queryClient.setQueryData<CatResponse[]>(CATS_QUERY_KEY, (old = []) =>
+        old.map(cat => cat.id === updatedCat.id ? { ...cat, ...updatedCat } : cat)
+      );
+      return { previousCats };
+    },
+    onError: (err, updatedCat, context) => {
+      if (context?.previousCats) {
+        queryClient.setQueryData<CatResponse[]>(CATS_QUERY_KEY, context.previousCats);
+      }
+      console.error('Failed to update cat:', err);
+    },
+    // Always refetch after error or success:
+    onSettled: (newTodo) => {
       queryClient.invalidateQueries({ queryKey: CATS_QUERY_KEY });
     },
   });

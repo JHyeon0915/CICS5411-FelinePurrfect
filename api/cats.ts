@@ -14,12 +14,12 @@ const mockCats: CatResponse[] = [
   },
   {
     id: '2',
-    name: 'Milo',
+    name: 'Hobagi',
     photoUri: 'https://unsplash.com/photos/white-kitten-Tn8DLxwuDMA?w=400',
-    age: 2,
+    age: 10,
     sex: 'male',
-    adoptedDate: new Date('2023-01-20').toISOString(),
-    weight: 5.1,
+    adoptedDate: new Date('2025-01-12').toISOString(),
+    weight: 6,
   },
 ];
 
