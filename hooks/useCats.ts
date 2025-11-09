@@ -53,7 +53,7 @@ export function useUpdateCat() {
       console.error('Failed to update cat:', err);
     },
     // Always refetch after error or success:
-    onSettled: (newTodo) => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: CATS_QUERY_KEY });
     },
   });
