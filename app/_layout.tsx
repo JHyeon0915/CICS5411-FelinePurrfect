@@ -26,6 +26,18 @@ export default function RootLayout() {
             name="(screens)/my-cats/[id]/edit"
             options={{ title: 'Edit Cat' }}
           />
+          <Stack.Screen
+            name="(screens)/logs/[id]/index"
+            options={{ title: 'Log Detail' }}
+          />
+          <Stack.Screen
+            name="(screens)/logs/[id]/create"
+            options={{ title: 'Add New Log' }}
+          />
+          <Stack.Screen
+            name="(screens)/logs/[id]/edit"
+            options={{ title: 'Edit Log' }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </SafeAreaProvider>
