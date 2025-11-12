@@ -1,8 +1,8 @@
-import { Colors } from '@/constants/colors';
 import { CatResponse } from '@/types/cat';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router } from 'expo-router';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { AddButton } from './AddButton';
 
 interface CatCardProps {
   cat: CatResponse;
@@ -105,17 +105,10 @@ export function AddCatCard({ onPress }: AddCatCardProps) {
   return (
     <TouchableOpacity
       onPress={onPress ? onPress : () => router.push('/(screens)/my-cats/create')}
-      className="bg-white shadow-sm mb-4 overflow-hidden active:opacity-80 border border-dashed border-gray-light rounded-2xl"
+      className="bg-white shadow-sm mb-4 overflow-hidden border border-dashed border-gray-light rounded-2xl"
     >
       <View className="flex-row h-32 items-center justify-center">
-        <View className="items-center">
-          <View className="w-16 h-16 rounded-full bg-primary-100 items-center justify-center mb-2">
-            <FontAwesome6 name="plus" size={24} color={Colors.primary[600]} />
-          </View>
-          <Text className="text-primary-600 font-bold">
-            Add New Cat
-          </Text>
-        </View>
+        <AddButton title="Add New Cat" />
       </View>
     </TouchableOpacity>
   );
