@@ -27,7 +27,7 @@ export const catsApi = {
   // Get all cats
   getCats: async (): Promise<CatResponse[]> => {
     // Mock data for now
-    // const mockCats: CatResponse[] = [];
+   //  const mockCats: CatResponse[] = [];
     return mockCats;
     
     // const response = await fetch(`${API_URL}/cats`);
