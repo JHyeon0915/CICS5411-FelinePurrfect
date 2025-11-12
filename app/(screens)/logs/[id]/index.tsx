@@ -238,23 +238,25 @@ export default function LogDetailScreen() {
             )}
 
             {/* Timestamp */}
-            <View className="bg-gray-50 rounded-2xl p-4">
-              <View className="flex-row items-center mb-2">
-                <FontAwesome6 name="clock" size={14} color="#6b7280" />
-                <Text className="text-gray-600 text-xs font-medium ml-2">Created</Text>
+            <View className="gap-y-4 bg-gray-50 rounded-2xl p-4">
+              <View>
+                <View className="flex-row items-center mb-2">
+                  <FontAwesome6 name="clock" size={14} color="#6b7280" />
+                  <Text className="text-gray-600 text-xs font-medium ml-2">Created</Text>
+                </View>
+                <Text className="text-gray-900 text-sm">
+                  {new Date(log.createdAt).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                  })}
+                </Text>
               </View>
-              <Text className="text-gray-900 text-sm">
-                {new Date(log.createdAt).toLocaleString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  hour12: true,
-                })}
-              </Text>
               {log.updatedAt !== log.createdAt && (
-                <>
+                <View>
                   <View className="flex-row items-center mb-2 mt-3">
                     <FontAwesome6 name="pen" size={14} color="#6b7280" />
                     <Text className="text-gray-600 text-xs font-medium ml-2">Last Updated</Text>
@@ -269,7 +271,7 @@ export default function LogDetailScreen() {
                       hour12: true,
                     })}
                   </Text>
-                </>
+                </View>
               )}
             </View>
           </View>
