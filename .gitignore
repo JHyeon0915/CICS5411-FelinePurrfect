@@ -36,6 +36,11 @@ yarn-error.*
 frontend/ios
 frontend/android
 
+#ml
+ml/data/train
+ml/data/test
+ml/training/__pycache__
+ml/venv
 
 # macOS
 .DS_Store
