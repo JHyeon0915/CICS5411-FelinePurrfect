@@ -36,12 +36,26 @@ yarn-error.*
 frontend/ios
 frontend/android
 
-#ml
+# ML
 ml/data/train
 ml/data/test
 ml/training/__pycache__
 ml/venv
 
+# Terraform
+infra/.terraform/
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+infra/.terraform.lock.hcl
+infra/.terragrunt-cache/
+infra/terraform.tfvars
+
+# Sensitive files - DO NOT COMMIT
+*.pem
+*.key
+
+# Lambda deployment packages
+infra/*.zip
+
 # macOS
 .DS_Store
-*.pem
