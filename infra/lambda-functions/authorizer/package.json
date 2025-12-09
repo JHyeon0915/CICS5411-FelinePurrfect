@@ -1,0 +1,10 @@
+{
+  "name": "authorizer-lambda",
+  "version": "1.0.0",
+  "description": "JWT Authorizer Lambda function",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.470.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

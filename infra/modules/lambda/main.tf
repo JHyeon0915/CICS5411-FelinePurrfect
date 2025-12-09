@@ -5,11 +5,11 @@ data "aws_iam_role" "lab_role" {
 
 # Auth Lambda Function
 resource "aws_lambda_function" "auth" {
-  filename         = "${path.module}/../../lambda-functions/auth.zip"  # CREATE THIS ZIP FILE
+  filename         = "${path.module}/../../lambda-functions/dist/auth.zip"
   function_name    = "${var.name_prefix}-auth"
   role            = data.aws_iam_role.lab_role.arn
   handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/auth.zip")
+  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/auth.zip")
   runtime         = "nodejs20.x"
   timeout         = 30
   memory_size     = 512
@@ -28,11 +28,11 @@ resource "aws_lambda_function" "auth" {
 
 # Cats Lambda Function
 resource "aws_lambda_function" "cats" {
-  filename         = "${path.module}/../../lambda-functions/cats.zip"  # CREATE THIS ZIP FILE
+  filename         = "${path.module}/../../lambda-functions/dist/cats.zip"
   function_name    = "${var.name_prefix}-cats"
   role            = data.aws_iam_role.lab_role.arn
   handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/cats.zip")
+  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/cats.zip")
   runtime         = "nodejs20.x"
   timeout         = 30
   memory_size     = 512
@@ -51,11 +51,11 @@ resource "aws_lambda_function" "cats" {
 
 # Logs Lambda Function
 resource "aws_lambda_function" "logs" {
-  filename         = "${path.module}/../../lambda-functions/logs.zip"  # CREATE THIS ZIP FILE
+  filename         = "${path.module}/../../lambda-functions/dist/logs.zip"
   function_name    = "${var.name_prefix}-logs"
   role            = data.aws_iam_role.lab_role.arn
   handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/logs.zip")
+  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/logs.zip")
   runtime         = "nodejs20.x"
   timeout         = 30
   memory_size     = 512
@@ -75,11 +75,11 @@ resource "aws_lambda_function" "logs" {
 
 # Diseases Lambda Function
 resource "aws_lambda_function" "diseases" {
-  filename         = "${path.module}/../../lambda-functions/diseases.zip"  # CREATE THIS ZIP FILE
+  filename         = "${path.module}/../../lambda-functions/dist/diseases.zip"
   function_name    = "${var.name_prefix}-diseases"
   role            = data.aws_iam_role.lab_role.arn
   handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/diseases.zip")
+  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/diseases.zip")
   runtime         = "nodejs20.x"
   timeout         = 30
   memory_size     = 512
@@ -99,11 +99,11 @@ resource "aws_lambda_function" "diseases" {
 
 # Dashboard analysis Lambda Function
 resource "aws_lambda_function" "dashboard_analysis" {
-  filename         = "${path.module}/../../lambda-functions/dashboard-analysis.zip"  # CREATE THIS ZIP FILE
+  filename         = "${path.module}/../../lambda-functions/dist/dashboard-analysis.zip"
   function_name    = "${var.name_prefix}-dashboard-analysis"
   role            = data.aws_iam_role.lab_role.arn
   handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dashboard-analysis.zip")
+  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/dashboard-analysis.zip")
   runtime         = "nodejs20.x"
   timeout         = 30
   memory_size     = 512
@@ -122,11 +122,11 @@ resource "aws_lambda_function" "dashboard_analysis" {
 
 # Check Missing Logs Lambda Function
 resource "aws_lambda_function" "check_missing_logs" {
-  filename         = "${path.module}/../../lambda-functions/check-missing-logs.zip"  # CREATE THIS ZIP FILE
+  filename         = "${path.module}/../../lambda-functions/dist/check-missing-logs.zip"
   function_name    = "${var.name_prefix}-check-missing-logs"
   role            = data.aws_iam_role.lab_role.arn
   handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/check-missing-logs.zip")
+  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/check-missing-logs.zip")
   runtime         = "nodejs20.x"
   timeout         = 60
   memory_size     = 512
@@ -148,11 +148,11 @@ resource "aws_lambda_function" "check_missing_logs" {
 
 # JWT Authorizer Lambda Function
 resource "aws_lambda_function" "authorizer" {
-  filename         = "${path.module}/../../lambda-functions/authorizer.zip"  # CREATE THIS ZIP FILE
+  filename         = "${path.module}/../../lambda-functions/dist/authorizer.zip"
   function_name    = "${var.name_prefix}-jwt-authorizer"
   role            = data.aws_iam_role.lab_role.arn
   handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/authorizer.zip")
+  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/authorizer.zip")
   runtime         = "nodejs20.x"
   timeout         = 10
   memory_size     = 256

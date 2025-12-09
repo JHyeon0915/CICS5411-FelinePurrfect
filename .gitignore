@@ -55,7 +55,8 @@ infra/terraform.tfvars
 *.key
 
 # Lambda deployment packages
-infra/*.zip
+infra/lambda-functions/dist
+infra/lambda-functions/**/node_modules/
 
 # macOS
 .DS_Store
