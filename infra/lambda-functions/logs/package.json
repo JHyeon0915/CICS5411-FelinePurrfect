@@ -1,0 +1,11 @@
+{
+  "name": "logs-lambda",
+  "version": "1.0.0",
+  "description": "Health logs Lambda function",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.470.0",
+    "@aws-sdk/lib-dynamodb": "^3.470.0",
+    "uuid": "^9.0.1"
+  }
+}

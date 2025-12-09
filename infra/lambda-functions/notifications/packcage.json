@@ -1,0 +1,9 @@
+{
+  "name": "notifications-lambda",
+  "version": "1.0.0",
+  "description": "Notifications Lambda function",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-sns": "^3.470.0"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "check-missing-logs-lambda",
+  "version": "1.0.0",
+  "description": "Check for missing daily health logs",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.470.0",
+    "@aws-sdk/lib-dynamodb": "^3.470.0",
+    "@aws-sdk/client-sns": "^3.470.0"
+  }
+}
