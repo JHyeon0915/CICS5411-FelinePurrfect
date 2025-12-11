@@ -32,3 +32,38 @@ output "jwt_secret_arn" {
   value       = module.secrets_manager.jwt_secret_arn
   sensitive   = true
 }
+
+output "cognito_user_pool_id" {
+  description = "The ID of the Cognito User Pool"
+  value       = module.cognito.user_pool_id
+}
+
+output "cognito_user_pool_arn" {
+  description = "The ARN of the Cognito User Pool"
+  value       = module.cognito.user_pool_arn
+}
+
+output "cognito_app_client_id" {
+  description = "The ID of the Cognito App Client"
+  value       = module.cognito.app_client_id
+}
+
+output "cognito_region" {
+  description = "AWS region where Cognito is deployed"
+  value       = var.aws_region
+}
+
+# Formatted output for .env file
+output "frontend_env_variables" {
+  description = "Environment variables for React Native frontend"
+  value = <<-EOT
+    
+    ✅ Copy these to frontend/.env:
+    
+    EXPO_PUBLIC_AWS_REGION=${var.aws_region}
+    EXPO_PUBLIC_COGNITO_USER_POOL_ID=${module.cognito.user_pool_id}
+    EXPO_PUBLIC_COGNITO_CLIENT_ID=${module.cognito.app_client_id}
+    
+    📝 Note: Use LabRole for Lambda functions
+  EOT
+}

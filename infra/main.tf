@@ -18,6 +18,15 @@ locals {
   ml_data_bucket_name    = "${local.name_prefix}-ml-data-${random_string.suffix.result}"
 }
 
+# Cognito User Pool Module
+module "cognito" {
+  source = "./modules/cognito"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+}
+
 # DynamoDB Module
 module "dynamodb" {
   source = "./modules/dynamodb"
