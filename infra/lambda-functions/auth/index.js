@@ -1,13 +1,4 @@
-const { 
-  CognitoIdentityProviderClient,
-  SignUpCommand,
-  ConfirmSignUpCommand,
-  InitiateAuthCommand,
-  ResendConfirmationCodeCommand,
-  ForgotPasswordCommand,
-  ConfirmForgotPasswordCommand,
-  ChangePasswordCommand,
-} = require('@aws-sdk/client-cognito-identity-provider');
+const { CognitoIdentityProviderClient, SignUpCommand, ConfirmSignUpCommand, InitiateAuthCommand, ResendConfirmationCodeCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ChangePasswordCommand } = require('@aws-sdk/client-cognito-identity-provider');
 
 const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
@@ -279,7 +270,21 @@ async function changePassword(body, accessToken) {
 
 // Main handler
 exports.handler = async (event) => {
-  console.log('Event:', JSON.stringify(event, null, 2));
+  // Log event with sensitive data redacted in CloudWatch
+  const logEvent = { ...event };
+  if (event.body) {
+    try {
+      const body = JSON.parse(event.body);
+      // Redact all password fields
+      if (body.password) body.password = '***REDACTED***';
+      if (body.oldPassword) body.oldPassword = '***REDACTED***';
+      if (body.newPassword) body.newPassword = '***REDACTED***';
+      logEvent.body = JSON.stringify(body);
+    } catch (e) {
+      logEvent.body = '***INVALID_JSON***';
+    }
+  }
+  console.log('Event (sanitized):', JSON.stringify(logEvent, null, 2));
 
   // Handle CORS preflight
   if (event.requestContext.http.method === 'OPTIONS') {
