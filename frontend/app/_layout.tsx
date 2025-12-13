@@ -17,6 +17,11 @@ export default function RootLayout() {
             headerBackTitle: 'Back',
           }}
         >
+          <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)/signup" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)/verify-email" options={{ title: 'Verify your email' }} />
+          <Stack.Screen name="(auth)/change-password" options={{ title: 'Change your password' }} />
+          <Stack.Screen name="(auth)/forgot-password" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="(screens)/my-cats/create"
