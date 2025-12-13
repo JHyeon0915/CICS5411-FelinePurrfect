@@ -1,4 +1,13 @@
-const { CognitoIdentityProviderClient, SignUpCommand, ConfirmSignUpCommand, InitiateAuthCommand, ResendConfirmationCodeCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ChangePasswordCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { 
+  CognitoIdentityProviderClient,
+  SignUpCommand,
+  ConfirmSignUpCommand,
+  InitiateAuthCommand,
+  ResendConfirmationCodeCommand,
+  ForgotPasswordCommand,
+  ConfirmForgotPasswordCommand,
+  ChangePasswordCommand,
+} = require('@aws-sdk/client-cognito-identity-provider');
 
 const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
@@ -278,15 +287,26 @@ exports.handler = async (event) => {
   }
 
   try {
-    const path = event.rawPath || event.path;
+    // Get path - remove stage prefix if present
+    let path = event.rawPath || event.path;
+    
+    // Remove stage prefix (e.g., /dev/auth/register -> /auth/register)
+    if (path.startsWith('/dev/')) {
+      path = path.replace('/dev', '');
+    } else if (path.startsWith('/prod/')) {
+      path = path.replace('/prod', '');
+    }
+    
     const body = JSON.parse(event.body || '{}');
     
     // Get access token from Authorization header
     const authHeader = event.headers?.authorization || event.headers?.Authorization;
     const accessToken = authHeader?.replace('Bearer ', '');
 
+    console.log('Processing path:', path);
+
     switch (path) {
-      case '/auth/signup':
+      case '/auth/register':
         return await signUp(body);
       
       case '/auth/verify':
@@ -295,7 +315,7 @@ exports.handler = async (event) => {
       case '/auth/resend-code':
         return await resendCode(body);
       
-      case '/auth/signin':
+      case '/auth/login':
         return await signIn(body);
       
       case '/auth/forgot-password':
@@ -310,7 +330,7 @@ exports.handler = async (event) => {
       default:
         return response(404, { 
           code: 'NotFound',
-          message: 'Endpoint not found' 
+          message: `Endpoint not found: ${path}` 
         });
     }
   } catch (error) {
