@@ -20,7 +20,7 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)/signup" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)/verify-email" options={{ title: 'Verify your email' }} />
-          <Stack.Screen name="(auth)/change-password" options={{ title: 'Change your password' }} />
+          <Stack.Screen name="(auth)/change-password" options={{ title: 'Change password' }} />
           <Stack.Screen name="(auth)/forgot-password" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
@@ -43,6 +43,8 @@ export default function RootLayout() {
             name="(screens)/logs/[id]/edit"
             options={{ title: 'Edit Log' }}
           />
+          <Stack.Screen name="(screens)/profile/index" options={{ title: 'Profile' }} />
+          <Stack.Screen name="(screens)/profile/edit" options={{ title: 'Edit Profile' }} />
         </Stack>
         <StatusBar style="auto" />
       </SafeAreaProvider>
