@@ -57,3 +57,18 @@ variable "lambda_diseases_name" {
   description = "Name of the diseases Lambda function"
   type        = string
 }
+
+variable "cognito_user_pool_id" {
+  description = "Cognito User Pool ID for JWT authorizer"
+  type        = string
+}
+
+variable "cognito_app_client_id" {
+  description = "Cognito App Client ID for JWT authorizer"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+}

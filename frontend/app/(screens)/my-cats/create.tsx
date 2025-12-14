@@ -29,7 +29,7 @@ export default function CreateCatScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const addCatMutation = useAddCat();
-   const { imageUri, pickImage, isPickingImage } = useImagePicker();
+  const { imageUri, pickImage, isPickingImage } = useImagePicker();
 
   const handleAdd = () => {
     if (!imageUri) {
@@ -51,9 +51,9 @@ export default function CreateCatScreen() {
       name: name.trim(),
       age: Number(age),
       sex,
-      photoUri: imageUri,
       adoptedDate: adoptedDate.toISOString(),
       weight: weight ? Number(weight) : null,
+      photo: imageUri, // Will be converted to base64 in API
     };
 
     addCatMutation.mutate(newCat, {

@@ -88,10 +88,15 @@ module "api_gateway" {
 
   name_prefix = local.name_prefix
   stage_name  = var.environment
+  aws_region     = var.aws_region
   
   # Standalone Auth Lambda (Cognito)
   lambda_auth_invoke_arn = aws_lambda_function.auth.invoke_arn
   lambda_auth_name       = aws_lambda_function.auth.function_name
+
+  # Cognito for JWT Authorizer
+  cognito_user_pool_id   = module.cognito.user_pool_id
+  cognito_app_client_id  = module.cognito.app_client_id
   
   # Other Lambdas from lambda module
   lambda_cats_invoke_arn      = module.lambda.cats_invoke_arn
@@ -138,12 +143,16 @@ module "lambda" {
   name_prefix              = local.name_prefix
   environment              = var.environment
   lab_role_arn             = var.lab_role_arn
+  aws_region               = var.aws_region
+
   users_table_name         = module.dynamodb.users_table_name
   cats_table_name          = module.dynamodb.cats_table_name
   logs_table_name          = module.dynamodb.logs_table_name
   diseases_table_name      = module.dynamodb.diseases_table_name
   device_tokens_table_name = module.dynamodb.device_tokens_table_name
+
   cat_photos_bucket_name   = module.s3.cat_photos_bucket_name
+
   sns_topic_arn            = module.sns.reminders_topic_arn
 }
 

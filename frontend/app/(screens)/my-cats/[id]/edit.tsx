@@ -34,7 +34,7 @@ export default function EditCatScreen() {
   const [adoptedDate, setAdoptedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const cat = cats.find(c => c.id === id);
+  const cat = cats.find(c => c.catId === id);
 
   // Load cat data when component mounts
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function EditCatScreen() {
       setAge(cat.age.toString());
       setSex(cat.sex);
       setWeight(cat.weight?.toString() || '');
-      setImageUri(cat.photoUri);
+      setImageUri(cat.photoUrl || '');
       setAdoptedDate(new Date(cat.adoptedDate));
     }
   }, [cat, setImageUri]);
@@ -64,22 +64,21 @@ export default function EditCatScreen() {
       return;
     }
 
+    if (!cat) return;
+
     const updatedCat = {
-      id,
+      ...cat,
       name: name.trim(),
       age: Number(age),
       sex,
-      photoUri: imageUri,
       adoptedDate: adoptedDate.toISOString(),
       weight: weight ? Number(weight) : null,
+      photo: imageUri, // Will be converted to base64 in API if it's a local file
     };
 
     updateCatMutation.mutate(updatedCat, {
       onSuccess: () => {
         router.back();
-      },
-      onError: () => {
-        Alert.alert('Error', 'Failed to update cat. Please try again.');
       },
     });
   };

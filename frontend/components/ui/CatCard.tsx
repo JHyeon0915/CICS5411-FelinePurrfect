@@ -30,16 +30,16 @@ export function CatCard({ cat, onPress }: CatCardProps) {
 
   return (
     <TouchableOpacity
-      onPress={onPress ? onPress : () => {router.push(`/(screens)/my-cats/${cat.id}`)}}
+      onPress={onPress ? onPress : () => {router.push(`/my-cats/${cat.catId}`)}}
       className="bg-white shadow-sm mb-4 overflow-hidden active:opacity-80 border border-gray-light rounded-2xl"
       activeOpacity={0.8}
     >
       <View className="flex-row h-32">
         {/* Cat Photo */}
         <View className="h-full aspect-square bg-primary">
-          {cat.photoUri && (
+          {cat.photoUrl && (
             <Image
-              source={{ uri: cat.photoUri }}
+              source={{ uri: cat.photoUrl }}
               className="w-full h-full"
               resizeMode="cover"
             />

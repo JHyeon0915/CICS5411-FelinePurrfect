@@ -1,6 +1,7 @@
 import { catsApi } from '@/api/cats';
 import { CatResponse } from '@/types/cat';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Alert } from 'react-native';
 
 const CATS_QUERY_KEY = ['cats'];
 
@@ -10,6 +11,16 @@ export function useCats() {
     queryKey: CATS_QUERY_KEY,
     queryFn: catsApi.getCats,
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
+// Get single cat
+export function useCat(catId: string) {
+  return useQuery({
+    queryKey: [...CATS_QUERY_KEY, catId],
+    queryFn: () => catsApi.getCat(catId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!catId,
   });
 }
 
@@ -25,9 +36,12 @@ export function useAddCat() {
         ...old,
         newCat,
       ]);
+      
+      Alert.alert('Success', 'Cat added successfully!');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Failed to add cat:', error);
+      Alert.alert('Error', error.message || 'Failed to add cat');
     },
   });
 }
@@ -41,18 +55,25 @@ export function useUpdateCat() {
     onMutate: async (updatedCat) => {
       await queryClient.cancelQueries({ queryKey: CATS_QUERY_KEY });
       const previousCats = queryClient.getQueryData<CatResponse[]>(CATS_QUERY_KEY);
+      
+      // Optimistically update cache
       queryClient.setQueryData<CatResponse[]>(CATS_QUERY_KEY, (old = []) =>
-        old.map(cat => cat.id === updatedCat.id ? { ...cat, ...updatedCat } : cat)
+        old.map(cat => cat.catId === updatedCat.catId ? { ...cat, ...updatedCat } : cat)
       );
+      
       return { previousCats };
     },
-    onError: (err, updatedCat, context) => {
+    onSuccess: () => {
+      Alert.alert('Success', 'Cat updated successfully!');
+    },
+    onError: (err: any, updatedCat, context) => {
+      // Rollback on error
       if (context?.previousCats) {
         queryClient.setQueryData<CatResponse[]>(CATS_QUERY_KEY, context.previousCats);
       }
       console.error('Failed to update cat:', err);
+      Alert.alert('Error', err.message || 'Failed to update cat');
     },
-    // Always refetch after error or success:
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: CATS_QUERY_KEY });
     },
@@ -67,6 +88,11 @@ export function useDeleteCat() {
     mutationFn: catsApi.deleteCat,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CATS_QUERY_KEY });
+      Alert.alert('Success', 'Cat removed successfully');
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete cat:', error);
+      Alert.alert('Error', error.message || 'Failed to delete cat');
     },
   });
 }

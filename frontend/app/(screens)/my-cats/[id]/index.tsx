@@ -20,7 +20,7 @@ export default function CatDetailScreen() {
   const [menuVisible, setMenuVisible] = useState(false);
   const deleteCatMutation = useDeleteCat();
 
-  const cat = cats.find(c => c.id === id);
+  const cat = cats.find(c => c.catId === id);
 
   const getTimeWithOwner = () => {
     if (!cat) return '';
@@ -47,7 +47,7 @@ export default function CatDetailScreen() {
     router.push(`/(screens)/my-cats/${id}/edit`);
   };
 
-const handleDelete = () => {
+  const handleDelete = () => {
     setMenuVisible(false);
     Alert.alert(
       'Delete Cat',
@@ -61,14 +61,7 @@ const handleDelete = () => {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            deleteCatMutation.mutate(id, {
-              onSuccess: () => {
-                router.back();
-              },
-              onError: () => {
-                Alert.alert('Error', 'Failed to delete cat. Please try again.');
-              },
-            });
+            deleteCatMutation.mutate(id);
           },
         },
       ]
@@ -87,7 +80,7 @@ const handleDelete = () => {
 
   return (
     <>
-    <Stack.Screen
+      <Stack.Screen
         options={{
           title: cat.name,
           headerRight: () => (
@@ -117,109 +110,109 @@ const handleDelete = () => {
         }}
       />
     
-    <View className="flex-1 bg-white">
-      <ScrollView className="flex-1">
-        {/* Header Image */}
-        <View className="w-full h-80 bg-gray-200">
-          {cat.photoUri ? (
-            <Image
-              source={{ uri: cat.photoUri }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="w-full h-full items-center justify-center bg-purple-100">
-              <FontAwesome6 name="cat" size={80} color="#a855f7" />
-            </View>
-          )}
-        </View>
-
-        {/* Content */}
-        <View className="p-6">
-          {/* Name */}
-          <Text className="text-3xl font-bold text-gray-800 mb-2">
-            {cat.name}
-          </Text>
-
-          {/* Info Cards */}
-          <View className="flex-row flex-wrap gap-3 mb-6">
-            {/* Age */}
-            <View className="bg-blue-50 px-4 py-3 rounded-xl flex-row items-center">
-              <FontAwesome6 name="cake-candles" size={16} color="#3b82f6" />
-              <View className="ml-3">
-                <Text className="text-blue-600 text-xs font-medium">Age</Text>
-                <Text className="text-blue-900 text-base font-bold">
-                  {cat.age} {cat.age === 1 ? 'year' : 'years'}
-                </Text>
-              </View>
-            </View>
-
-            {/* Sex */}
-            <View className={`px-4 py-3 rounded-xl flex-row items-center ${
-              cat.sex === 'male' ? 'bg-blue-50' : 'bg-pink-50'
-            }`}>
-              <FontAwesome6 
-                name={cat.sex === 'male' ? 'mars' : 'venus'} 
-                size={16} 
-                color={cat.sex === 'male' ? '#3b82f6' : '#ec4899'} 
+      <View className="flex-1 bg-white">
+        <ScrollView className="flex-1">
+          {/* Header Image */}
+          <View className="w-full h-80 bg-gray-200">
+            {cat.photoUrl ? (
+              <Image
+                source={{ uri: cat.photoUrl }}
+                className="w-full h-full"
+                resizeMode="cover"
               />
-              <View className="ml-3">
-                <Text className={`text-xs font-medium ${
-                  cat.sex === 'male' ? 'text-blue-600' : 'text-pink-600'
-                }`}>
-                  Sex
-                </Text>
-                <Text className={`text-base font-bold capitalize ${
-                  cat.sex === 'male' ? 'text-blue-900' : 'text-pink-900'
-                }`}>
-                  {cat.sex}
-                </Text>
-              </View>
-            </View>
-
-            {/* Time with owner */}
-            <View className="bg-green-50 px-4 py-3 rounded-xl flex-row items-center">
-              <FontAwesome6 name="heart" size={16} color="#10b981" />
-              <View className="ml-3">
-                <Text className="text-green-600 text-xs font-medium">With you</Text>
-                <Text className="text-green-900 text-base font-bold">
-                  {getTimeWithOwner()}
-                </Text>
-              </View>
-            </View>
-
-            {/* Weight */}
-            {cat.weight && (
-              <View className="bg-orange-50 px-4 py-3 rounded-xl flex-row items-center">
-                <FontAwesome6 name="weight-scale" size={16} color="#f97316" />
-                <View className="ml-3">
-                  <Text className="text-orange-600 text-xs font-medium">Weight</Text>
-                  <Text className="text-orange-900 text-base font-bold">
-                    {cat.weight} kg
-                  </Text>
-                </View>
+            ) : (
+              <View className="w-full h-full items-center justify-center bg-primary-100">
+                <FontAwesome6 name="cat" size={80} color="#155C8D" />
               </View>
             )}
           </View>
 
-          {/* Adoption Date Section */}
-          <View className="bg-gray-50 rounded-2xl p-4 mb-6">
-            <View className="flex-row items-center mb-2">
-              <FontAwesome6 name="calendar" size={16} color="#6b7280" />
-              <Text className="text-gray-700 font-semibold ml-2">Adoption Date</Text>
-            </View>
-            <Text className="text-gray-900 text-lg font-bold">
-              {new Date(cat.adoptedDate).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+          {/* Content */}
+          <View className="p-6">
+            {/* Name */}
+            <Text className="text-3xl font-bold text-gray-800 mb-2">
+              {cat.name}
             </Text>
+
+            {/* Info Cards */}
+            <View className="flex-row flex-wrap gap-3 mb-6">
+              {/* Age */}
+              <View className="bg-blue-50 px-4 py-3 rounded-xl flex-row items-center">
+                <FontAwesome6 name="cake-candles" size={16} color="#3b82f6" />
+                <View className="ml-3">
+                  <Text className="text-blue-600 text-xs font-medium">Age</Text>
+                  <Text className="text-blue-900 text-base font-bold">
+                    {cat.age} {cat.age === 1 ? 'year' : 'years'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Sex */}
+              <View className={`px-4 py-3 rounded-xl flex-row items-center ${
+                cat.sex === 'male' ? 'bg-blue-50' : 'bg-pink-50'
+              }`}>
+                <FontAwesome6 
+                  name={cat.sex === 'male' ? 'mars' : 'venus'} 
+                  size={16} 
+                  color={cat.sex === 'male' ? '#3b82f6' : '#ec4899'} 
+                />
+                <View className="ml-3">
+                  <Text className={`text-xs font-medium ${
+                    cat.sex === 'male' ? 'text-blue-600' : 'text-pink-600'
+                  }`}>
+                    Sex
+                  </Text>
+                  <Text className={`text-base font-bold capitalize ${
+                    cat.sex === 'male' ? 'text-blue-900' : 'text-pink-900'
+                  }`}>
+                    {cat.sex}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Time with owner */}
+              <View className="bg-green-50 px-4 py-3 rounded-xl flex-row items-center">
+                <FontAwesome6 name="heart" size={16} color="#10b981" />
+                <View className="ml-3">
+                  <Text className="text-green-600 text-xs font-medium">With you</Text>
+                  <Text className="text-green-900 text-base font-bold">
+                    {getTimeWithOwner()}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Weight */}
+              {cat.weight && (
+                <View className="bg-orange-50 px-4 py-3 rounded-xl flex-row items-center">
+                  <FontAwesome6 name="weight-scale" size={16} color="#f97316" />
+                  <View className="ml-3">
+                    <Text className="text-orange-600 text-xs font-medium">Weight</Text>
+                    <Text className="text-orange-900 text-base font-bold">
+                      {cat.weight} kg
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* Adoption Date Section */}
+            <View className="bg-gray-50 rounded-2xl p-4 mb-6">
+              <View className="flex-row items-center mb-2">
+                <FontAwesome6 name="calendar" size={16} color="#6b7280" />
+                <Text className="text-gray-700 font-semibold ml-2">Adoption Date</Text>
+              </View>
+              <Text className="text-gray-900 text-lg font-bold">
+                {new Date(cat.adoptedDate).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </Text>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
     </>
   );
 }

@@ -1,3 +1,5 @@
+# infra/modules/dynamodb/main.tf
+
 # Users Table
 resource "aws_dynamodb_table" "users" {
   name         = "${var.name_prefix}-users"
@@ -64,7 +66,8 @@ resource "aws_dynamodb_table" "cats" {
   }
   
   tags = {
-    Name = "${var.name_prefix}-cats-table"
+    Name        = "${var.name_prefix}-cats-table"
+    Environment = var.environment
   }
 }
 

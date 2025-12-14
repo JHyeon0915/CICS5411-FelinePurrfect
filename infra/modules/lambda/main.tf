@@ -1,4 +1,3 @@
-
 # infra/modules/lambda/main.tf
 
 # IAM Role for Lambda Functions
@@ -36,6 +35,11 @@ resource "aws_lambda_function" "cats" {
 resource "aws_cloudwatch_log_group" "cats" {
   name              = "/aws/lambda/${aws_lambda_function.cats.function_name}"
   retention_in_days = 30
+
+  tags = {
+    Name        = "${var.name_prefix}-cats-logs"
+    Environment = var.environment
+  }
 }
 
 # ========================================

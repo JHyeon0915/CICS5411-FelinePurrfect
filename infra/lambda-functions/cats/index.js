@@ -8,8 +8,8 @@ const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
-const CATS_TABLE = process.env.CATS_TABLE;
-const CAT_PHOTOS_BUCKET = process.env.CAT_PHOTOS_BUCKET;
+const CATS_TABLE = process.env.CATS_TABLE_NAME;
+const CAT_PHOTOS_BUCKET = process.env.CAT_PHOTOS_BUCKET_NAME;
 
 function response(statusCode, body) {
   return {
@@ -24,21 +24,32 @@ function response(statusCode, body) {
   };
 }
 
-// Get user ID from authorizer context
+// Get user ID from JWT token
 function getUserId(event) {
-  return event.requestContext?.authorizer?.lambda?.userId || 
-         event.requestContext?.authorizer?.userId;
+  // From API Gateway JWT authorizer
+  const claims = event.requestContext?.authorizer?.jwt?.claims;
+  if (claims) {
+    return claims.sub || claims['cognito:username'];
+  }
+  
+  // Fallback for custom authorizer
+  return event.requestContext?.authorizer?.userId;
 }
 
 // Create cat
 async function createCat(event) {
   const userId = getUserId(event);
+  
+  if (!userId) {
+    return response(401, { error: 'Unauthorized' });
+  }
+  
   const body = JSON.parse(event.body || '{}');
   
-  const { name, breed, dateOfBirth, weight, color, microchipId, photo } = body;
+  const { name, age, sex, adoptedDate, weight, breed, color, microchipId, photo } = body;
 
-  if (!name || !breed) {
-    return response(400, { error: 'Name and breed are required' });
+  if (!name) {
+    return response(400, { error: 'Name is required' });
   }
 
   const catId = uuidv4();
@@ -46,35 +57,42 @@ async function createCat(event) {
 
   // Upload photo to S3 if provided (base64 encoded)
   if (photo) {
-    const buffer = Buffer.from(photo.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-    const key = `${userId}/${catId}/profile.jpg`;
-    
-    const uploadCommand = new PutObjectCommand({
-      Bucket: CAT_PHOTOS_BUCKET,
-      Key: key,
-      Body: buffer,
-      ContentType: 'image/jpeg'
-    });
+    try {
+      const buffer = Buffer.from(photo.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+      const key = `${userId}/${catId}/profile.jpg`;
+      
+      const uploadCommand = new PutObjectCommand({
+        Bucket: CAT_PHOTOS_BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: 'image/jpeg'
+      });
 
-    await s3Client.send(uploadCommand);
-    
-    // Generate presigned URL for photo
-    const getCommand = new GetObjectCommand({
-      Bucket: CAT_PHOTOS_BUCKET,
-      Key: key
-    });
-    photoUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 86400 }); // 24 hours
+      await s3Client.send(uploadCommand);
+      
+      // Generate presigned URL for photo (7 days)
+      const getCommand = new GetObjectCommand({
+        Bucket: CAT_PHOTOS_BUCKET,
+        Key: key
+      });
+      photoUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 604800 });
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      // Continue without photo
+    }
   }
 
   const cat = {
     catId,
     userId,
     name,
-    breed,
-    dateOfBirth,
-    weight,
-    color,
-    microchipId,
+    age: age || 0,
+    sex: sex || 'female',
+    adoptedDate: adoptedDate || new Date().toISOString(),
+    weight: weight || null,
+    breed: breed || null,
+    color: color || null,
+    microchipId: microchipId || null,
     photoUrl,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -93,10 +111,14 @@ async function createCat(event) {
 // Get all cats for user
 async function getCats(event) {
   const userId = getUserId(event);
+  
+  if (!userId) {
+    return response(401, { error: 'Unauthorized' });
+  }
 
   const queryCommand = new QueryCommand({
     TableName: CATS_TABLE,
-    IndexName: 'UserIdIndex',
+    IndexName: 'userId-index',
     KeyConditionExpression: 'userId = :userId',
     ExpressionAttributeValues: {
       ':userId': userId
@@ -112,6 +134,10 @@ async function getCats(event) {
 async function getCat(event) {
   const userId = getUserId(event);
   const catId = event.pathParameters?.id;
+
+  if (!userId) {
+    return response(401, { error: 'Unauthorized' });
+  }
 
   if (!catId) {
     return response(400, { error: 'Cat ID is required' });
@@ -137,6 +163,10 @@ async function updateCat(event) {
   const catId = event.pathParameters?.id;
   const body = JSON.parse(event.body || '{}');
 
+  if (!userId) {
+    return response(401, { error: 'Unauthorized' });
+  }
+
   if (!catId) {
     return response(400, { error: 'Cat ID is required' });
   }
@@ -152,31 +182,73 @@ async function updateCat(event) {
     return response(404, { error: 'Cat not found' });
   }
 
+  // Handle photo upload if new photo provided
+  let photoUrl = existing.Item.photoUrl;
+  if (body.photo && !body.photo.startsWith('http')) {
+    try {
+      const buffer = Buffer.from(body.photo.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+      const key = `${userId}/${catId}/profile.jpg`;
+      
+      const uploadCommand = new PutObjectCommand({
+        Bucket: CAT_PHOTOS_BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: 'image/jpeg'
+      });
+
+      await s3Client.send(uploadCommand);
+      
+      const getPhotoCommand = new GetObjectCommand({
+        Bucket: CAT_PHOTOS_BUCKET,
+        Key: key
+      });
+      photoUrl = await getSignedUrl(s3Client, getPhotoCommand, { expiresIn: 604800 });
+    } catch (error) {
+      console.error('Photo upload error:', error);
+    }
+  }
+
   // Build update expression
   const updates = [];
   const values = {};
   const names = {};
 
-  if (body.name) {
+  if (body.name !== undefined) {
     updates.push('#name = :name');
     values[':name'] = body.name;
     names['#name'] = 'name';
   }
-  if (body.breed) {
-    updates.push('breed = :breed');
-    values[':breed'] = body.breed;
+  if (body.age !== undefined) {
+    updates.push('age = :age');
+    values[':age'] = body.age;
   }
-  if (body.dateOfBirth) {
-    updates.push('dateOfBirth = :dateOfBirth');
-    values[':dateOfBirth'] = body.dateOfBirth;
+  if (body.sex !== undefined) {
+    updates.push('sex = :sex');
+    values[':sex'] = body.sex;
   }
-  if (body.weight) {
+  if (body.adoptedDate !== undefined) {
+    updates.push('adoptedDate = :adoptedDate');
+    values[':adoptedDate'] = body.adoptedDate;
+  }
+  if (body.weight !== undefined) {
     updates.push('weight = :weight');
     values[':weight'] = body.weight;
   }
-  if (body.color) {
+  if (body.breed !== undefined) {
+    updates.push('breed = :breed');
+    values[':breed'] = body.breed;
+  }
+  if (body.color !== undefined) {
     updates.push('color = :color');
     values[':color'] = body.color;
+  }
+  if (body.microchipId !== undefined) {
+    updates.push('microchipId = :microchipId');
+    values[':microchipId'] = body.microchipId;
+  }
+  if (photoUrl) {
+    updates.push('photoUrl = :photoUrl');
+    values[':photoUrl'] = photoUrl;
   }
 
   updates.push('updatedAt = :updatedAt');
@@ -200,6 +272,10 @@ async function updateCat(event) {
 async function deleteCat(event) {
   const userId = getUserId(event);
   const catId = event.pathParameters?.id;
+
+  if (!userId) {
+    return response(401, { error: 'Unauthorized' });
+  }
 
   if (!catId) {
     return response(400, { error: 'Cat ID is required' });
@@ -229,22 +305,36 @@ async function deleteCat(event) {
 exports.handler = async (event) => {
   console.log('Event:', JSON.stringify(event, null, 2));
 
+  // Handle CORS preflight
+  if (event.requestContext?.http?.method === 'OPTIONS') {
+    return response(200, {});
+  }
+
   try {
     const method = event.requestContext?.http?.method || event.httpMethod;
-    const path = event.rawPath || event.path;
+    let path = event.rawPath || event.path;
+    
+    // Remove stage prefix
+    if (path.startsWith('/dev/')) {
+      path = path.replace('/dev', '');
+    } else if (path.startsWith('/prod/')) {
+      path = path.replace('/prod', '');
+    }
+
+    console.log('Processing:', method, path);
 
     if (method === 'POST' && path === '/cats') {
       return await createCat(event);
     } else if (method === 'GET' && path === '/cats') {
       return await getCats(event);
-    } else if (method === 'GET' && path.startsWith('/cats/')) {
+    } else if (method === 'GET' && path.match(/^\/cats\/[^/]+$/)) {
       return await getCat(event);
-    } else if (method === 'PUT' && path.startsWith('/cats/')) {
+    } else if (method === 'PUT' && path.match(/^\/cats\/[^/]+$/)) {
       return await updateCat(event);
-    } else if (method === 'DELETE' && path.startsWith('/cats/')) {
+    } else if (method === 'DELETE' && path.match(/^\/cats\/[^/]+$/)) {
       return await deleteCat(event);
     } else {
-      return response(404, { error: 'Not found' });
+      return response(404, { error: 'Not found', path, method });
     }
   } catch (error) {
     console.error('Error:', error);
