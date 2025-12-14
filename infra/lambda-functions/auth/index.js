@@ -1,4 +1,4 @@
-const { CognitoIdentityProviderClient, SignUpCommand, ConfirmSignUpCommand, InitiateAuthCommand, ResendConfirmationCodeCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ChangePasswordCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { CognitoIdentityProviderClient, SignUpCommand, ConfirmSignUpCommand, InitiateAuthCommand, ResendConfirmationCodeCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ChangePasswordCommand, UpdateUserAttributesCommand } = require('@aws-sdk/client-cognito-identity-provider');
 
 const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
@@ -269,6 +269,52 @@ async function changePassword(body, accessToken) {
   }
 }
 
+// Update Profile (for authenticated users)
+async function updateProfile(body, accessToken) {
+  const { name } = body;
+
+  if (!name) {
+    return response(400, {
+      code: 'ValidationError',
+      message: 'Name is required'
+    });
+  }
+
+  if (!accessToken) {
+    return response(401, {
+      code: 'Unauthorized',
+      message: 'Access token is required'
+    });
+  }
+
+  try {
+    const { UpdateUserAttributesCommand } = require('@aws-sdk/client-cognito-identity-provider');
+    
+    const command = new UpdateUserAttributesCommand({
+      AccessToken: accessToken,
+      UserAttributes: [
+        {
+          Name: 'name',
+          Value: name
+        }
+      ]
+    });
+
+    await cognitoClient.send(command);
+
+    return response(200, {
+      message: 'Profile updated successfully',
+      name: name
+    });
+  } catch (error) {
+    console.error('UpdateProfile error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
+  }
+}
+
 // Main handler
 exports.handler = async (event) => {
   // Log event with sensitive data redacted
@@ -332,6 +378,9 @@ exports.handler = async (event) => {
       
       case '/auth/change-password':
         return await changePassword(body, accessToken);
+      
+      case '/auth/update-profile':
+        return await updateProfile(body, accessToken);
       
       default:
         return response(404, { 

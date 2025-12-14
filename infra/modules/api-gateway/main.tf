@@ -1,3 +1,5 @@
+# infra/modules/api-gateway/main.tf
+
 # API Gateway HTTP API
 resource "aws_apigatewayv2_api" "main" {
   name          = "${var.name_prefix}-api"
@@ -97,6 +99,12 @@ resource "aws_apigatewayv2_route" "reset_password" {
 resource "aws_apigatewayv2_route" "change_password" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "POST /auth/change-password"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
+resource "aws_apigatewayv2_route" "update_profile" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "PUT /auth/update-profile"
   target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
 }
 

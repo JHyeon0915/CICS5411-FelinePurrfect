@@ -198,4 +198,39 @@ export const authApi = {
   getAccessToken: async (): Promise<string | null> => {
     return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
   },
+
+  // Update Profile (name)
+  updateProfile: async (name: string): Promise<AuthUser> => {
+    const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    const userData = await SecureStore.getItemAsync(USER_KEY);
+
+    if (!accessToken || !userData) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(`${AUTH_API_URL}/auth/update-profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw {
+        code: result.code || 'UpdateProfileError',
+        message: result.message || 'Failed to update profile',
+      };
+    }
+
+    // Update stored user data
+    const currentUser = JSON.parse(userData);
+    const updatedUser = { ...currentUser, name };
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(updatedUser));
+
+    return updatedUser;
+  },
 };
