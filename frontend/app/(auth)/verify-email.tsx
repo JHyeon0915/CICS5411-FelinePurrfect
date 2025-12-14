@@ -4,14 +4,14 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -22,7 +22,7 @@ export default function VerifyEmailScreen() {
   const { mutate: confirmSignUp, isPending: isConfirmationPending } = useConfirmSignUp();
   const { mutate: resendConfirmationCode, isPending: isResendPending } = useResendConfirmationCode();
 
-  const handleVerify = async () => {
+  const handleVerify = () => {
     if (!code.trim()) {
       Alert.alert('Error', 'Please enter the verification code');
       return;
@@ -34,38 +34,35 @@ export default function VerifyEmailScreen() {
     }
 
     try {
-      await confirmSignUp({ email, code: code.trim() });
-      
-      Alert.alert(
-        'Success',
-        'Your email has been verified! You can now sign in.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/login')
-          }
-        ]
+      confirmSignUp(
+        { email, code: code.trim() },
+        {
+          onSuccess: () => {
+            Alert.alert(
+              'Success',
+              'Your email has been verified! You can now sign in.',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => router.replace('/login')
+                }
+              ]
+            );
+          },
+        }
       );
     } catch (error: any) {
       console.error('Verification error:', error);
-      
-      if (error.code === 'CodeMismatchException') {
-        Alert.alert('Error', 'Invalid verification code');
-      } else if (error.code === 'ExpiredCodeException') {
-        Alert.alert('Error', 'Verification code has expired. Please request a new one.');
-      } else {
-        Alert.alert('Error', error.message || 'Failed to verify email');
-      }
+      Alert.alert('Error', error.message || 'Failed to verify email');
     }
   };
 
-  const handleResendCode = async () => {
+  const handleResendCode = () => {
     try {
-      await resendConfirmationCode(email || '');
-      Alert.alert('Success', 'A new verification code has been sent to your email');
+      resendConfirmationCode(email || '');
     } catch (error: any) {
-      console.error('Resend error:', error);
-      Alert.alert('Error', error.message || 'Failed to resend code');
+      console.error('Resend code error:', error);
+      Alert.alert('Error', error.message || 'Failed to resend verification code');
     }
   };
 
