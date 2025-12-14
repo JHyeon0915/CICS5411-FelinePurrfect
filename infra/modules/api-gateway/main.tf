@@ -217,30 +217,45 @@ resource "aws_apigatewayv2_route" "get_logs" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /logs"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "create_log" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "POST /logs"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+   authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "get_log" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /logs/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "update_log" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "PUT /logs/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "delete_log" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "DELETE /logs/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_lambda_permission" "logs" {

@@ -7,12 +7,12 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
-    Alert,
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function LogDetailScreen() {
@@ -23,7 +23,7 @@ export default function LogDetailScreen() {
   const deleteLogMutation = useDeleteLog();
 
   const log = logs.find(l => l.id === id);
-  const cat = cats.find(c => c.id === log?.catId);
+  const cat = cats.find(c => c.catId === log?.catId);
 
   const goToEdit = () => {
     setMenuVisible(false);
@@ -115,9 +115,9 @@ export default function LogDetailScreen() {
           {/* Header - Cat Info */}
           <View className="px-6 pt-6 pb-8">
             <View className="flex-row items-center">
-              {cat.photoUri ? (
+              {cat.photoUrl ? (
                 <Image 
-                  source={{ uri: cat.photoUri }} 
+                  source={{ uri: cat.photoUrl }} 
                   className="w-20 h-20 rounded-full mr-4"
                 />
               ) : (
