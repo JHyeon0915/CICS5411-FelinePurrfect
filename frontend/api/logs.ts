@@ -1,6 +1,6 @@
 import { LogRequest, LogResponse } from '@/types/log';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://your-lambda-url.amazonaws.com';
+const API_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // Mock data for development
 export const mockLogs: LogResponse[] = [

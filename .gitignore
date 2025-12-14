@@ -1,7 +1,8 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # local env files
-.env*.local
+*/.env
+*/.env.*.local
 
 # Native
 frontend/.kotlin/
@@ -45,7 +46,7 @@ ml/venv
 # Terraform
 infra/.terraform/
 infra/terraform.tfstate
-infra/terraform.tfstate.backup
+infra/*.backup
 infra/.terraform.lock.hcl
 infra/.terragrunt-cache/
 infra/terraform.tfvars

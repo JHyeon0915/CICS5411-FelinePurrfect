@@ -1,45 +1,9 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, PutCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
-const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
+const { CognitoIdentityProviderClient, SignUpCommand, ConfirmSignUpCommand, InitiateAuthCommand, ResendConfirmationCodeCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ChangePasswordCommand, UpdateUserAttributesCommand, DeleteUserCommand } = require('@aws-sdk/client-cognito-identity-provider');
 
-const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
-const docClient = DynamoDBDocumentClient.from(dynamoClient);
-const secretsClient = new SecretsManagerClient({ region: process.env.AWS_REGION });
+const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
-const USERS_TABLE = process.env.USERS_TABLE;
-const JWT_SECRET_NAME = process.env.JWT_SECRET_NAME;
-const DB_ENCRYPTION_KEY_NAME = process.env.DB_ENCRYPTION_KEY_NAME;
-
-let jwtSecret = null;
-let encryptionKey = null;
-
-// Cache secrets
-async function getSecret(secretName) {
-  const command = new GetSecretValueCommand({ SecretId: secretName });
-  const response = await secretsClient.send(command);
-  return response.SecretString;
-}
-
-async function initSecrets() {
-  if (!jwtSecret) {
-    jwtSecret = await getSecret(JWT_SECRET_NAME);
-  }
-  if (!encryptionKey) {
-    encryptionKey = await getSecret(DB_ENCRYPTION_KEY_NAME);
-  }
-}
-
-// Encrypt sensitive data
-function encrypt(text) {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(encryptionKey, 'hex'), iv);
-  let encrypted = cipher.update(text);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return iv.toString('hex') + ':' + encrypted.toString('hex');
-}
+const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID;
+const CLIENT_ID = process.env.COGNITO_CLIENT_ID;
 
 // Response helper
 function response(statusCode, body) {
@@ -55,127 +19,409 @@ function response(statusCode, body) {
   };
 }
 
-// Register handler
-async function register(body) {
-  const { email, password, name, phone } = body;
+// Sign Up
+async function signUp(body) {
+  const { email, password, name } = body;
 
   if (!email || !password || !name) {
-    return response(400, { error: 'Email, password, and name are required' });
+    return response(400, { 
+      code: 'ValidationError',
+      message: 'Email, password, and name are required' 
+    });
   }
 
-  // Check if user already exists
-  const getCommand = new GetCommand({
-    TableName: USERS_TABLE,
-    Key: { userId: email }
-  });
+  try {
+    const command = new SignUpCommand({
+      ClientId: CLIENT_ID,
+      Username: email,
+      Password: password,
+      UserAttributes: [
+        { Name: 'email', Value: email },
+        { Name: 'name', Value: name }
+      ]
+    });
 
-  const existingUser = await docClient.send(getCommand);
-  if (existingUser.Item) {
-    return response(409, { error: 'User already exists' });
+    await cognitoClient.send(command);
+
+    return response(201, {
+      message: 'User registered successfully. Please check your email for verification code.'
+    });
+  } catch (error) {
+    console.error('SignUp error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
   }
-
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // Encrypt sensitive data
-  const encryptedPhone = phone ? encrypt(phone) : null;
-
-  // Create user
-  const userId = email;
-  const user = {
-    userId,
-    email,
-    password: hashedPassword,
-    name,
-    phone: encryptedPhone,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-
-  const putCommand = new PutCommand({
-    TableName: USERS_TABLE,
-    Item: user
-  });
-
-  await docClient.send(putCommand);
-
-  // Generate JWT
-  const token = jwt.sign({ userId, email, name }, jwtSecret, { expiresIn: '7d' });
-
-  return response(201, {
-    message: 'User registered successfully',
-    token,
-    user: {
-      userId,
-      email,
-      name
-    }
-  });
 }
 
-// Login handler
-async function login(body) {
+// Confirm Sign Up (Email Verification)
+async function confirmSignUp(body) {
+  const { email, code } = body;
+
+  if (!email || !code) {
+    return response(400, { 
+      code: 'ValidationError',
+      message: 'Email and verification code are required' 
+    });
+  }
+
+  try {
+    const command = new ConfirmSignUpCommand({
+      ClientId: CLIENT_ID,
+      Username: email,
+      ConfirmationCode: code
+    });
+
+    await cognitoClient.send(command);
+
+    return response(200, {
+      message: 'Email verified successfully. You can now sign in.'
+    });
+  } catch (error) {
+    console.error('ConfirmSignUp error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
+  }
+}
+
+// Resend Confirmation Code
+async function resendCode(body) {
+  const { email } = body;
+
+  if (!email) {
+    return response(400, { 
+      code: 'ValidationError',
+      message: 'Email is required' 
+    });
+  }
+
+  try {
+    const command = new ResendConfirmationCodeCommand({
+      ClientId: CLIENT_ID,
+      Username: email
+    });
+
+    await cognitoClient.send(command);
+
+    return response(200, {
+      message: 'Verification code resent successfully'
+    });
+  } catch (error) {
+    console.error('ResendCode error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
+  }
+}
+
+// Sign In
+async function signIn(body) {
   const { email, password } = body;
 
   if (!email || !password) {
-    return response(400, { error: 'Email and password are required' });
+    return response(400, { 
+      code: 'ValidationError',
+      message: 'Email and password are required' 
+    });
   }
-
-  // Get user
-  const getCommand = new GetCommand({
-    TableName: USERS_TABLE,
-    Key: { userId: email }
-  });
-
-  const result = await docClient.send(getCommand);
-  if (!result.Item) {
-    return response(401, { error: 'Invalid credentials' });
-  }
-
-  const user = result.Item;
-
-  // Verify password
-  const isValidPassword = await bcrypt.compare(password, user.password);
-  if (!isValidPassword) {
-    return response(401, { error: 'Invalid credentials' });
-  }
-
-  // Generate JWT
-  const token = jwt.sign(
-    { userId: user.userId, email: user.email, name: user.name },
-    jwtSecret,
-    { expiresIn: '7d' }
-  );
-
-  return response(200, {
-    message: 'Login successful',
-    token,
-    user: {
-      userId: user.userId,
-      email: user.email,
-      name: user.name
-    }
-  });
-}
-
-exports.handler = async (event) => {
-  console.log('Event:', JSON.stringify(event, null, 2));
 
   try {
-    await initSecrets();
+    const command = new InitiateAuthCommand({
+      ClientId: CLIENT_ID,
+      AuthFlow: 'USER_PASSWORD_AUTH',
+      AuthParameters: {
+        USERNAME: email,
+        PASSWORD: password
+      }
+    });
 
-    const path = event.rawPath || event.path;
+    const result = await cognitoClient.send(command);
+
+    // Decode JWT to get user info (without verification - just parsing)
+    const idToken = result.AuthenticationResult.IdToken;
+    const payload = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString());
+
+    return response(200, {
+      message: 'Login successful',
+      token: result.AuthenticationResult.IdToken,
+      accessToken: result.AuthenticationResult.AccessToken,  // ADD THIS
+      refreshToken: result.AuthenticationResult.RefreshToken,
+      expiresIn: result.AuthenticationResult.ExpiresIn,
+      user: {
+        userId: payload.sub,
+        email: payload.email,
+        name: payload.name
+      }
+    });
+  } catch (error) {
+    console.error('SignIn error:', error);
+    return response(401, {
+      code: error.name,
+      message: 'Invalid email or password'
+    });
+  }
+}
+
+// Forgot Password
+async function forgotPassword(body) {
+  const { email } = body;
+
+  if (!email) {
+    return response(400, { 
+      code: 'ValidationError',
+      message: 'Email is required' 
+    });
+  }
+
+  try {
+    const command = new ForgotPasswordCommand({
+      ClientId: CLIENT_ID,
+      Username: email
+    });
+
+    await cognitoClient.send(command);
+
+    return response(200, {
+      message: 'Password reset code sent to your email'
+    });
+  } catch (error) {
+    console.error('ForgotPassword error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
+  }
+}
+
+// Confirm Forgot Password (Reset Password)
+async function resetPassword(body) {
+  const { email, code, newPassword } = body;
+
+  if (!email || !code || !newPassword) {
+    return response(400, { 
+      code: 'ValidationError',
+      message: 'Email, code, and new password are required' 
+    });
+  }
+
+  try {
+    const command = new ConfirmForgotPasswordCommand({
+      ClientId: CLIENT_ID,
+      Username: email,
+      ConfirmationCode: code,
+      Password: newPassword
+    });
+
+    await cognitoClient.send(command);
+
+    return response(200, {
+      message: 'Password reset successfully. You can now sign in with your new password.'
+    });
+  } catch (error) {
+    console.error('ResetPassword error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
+  }
+}
+
+// Change Password (for authenticated users)
+async function changePassword(body, accessToken) {
+  const { oldPassword, newPassword } = body;
+
+  if (!oldPassword || !newPassword) {
+    return response(400, { 
+      code: 'ValidationError',
+      message: 'Old password and new password are required' 
+    });
+  }
+
+  if (!accessToken) {
+    return response(401, {
+      code: 'Unauthorized',
+      message: 'Access token is required'
+    });
+  }
+
+  try {
+    const command = new ChangePasswordCommand({
+      AccessToken: accessToken,
+      PreviousPassword: oldPassword,
+      ProposedPassword: newPassword
+    });
+
+    await cognitoClient.send(command);
+
+    return response(200, {
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('ChangePassword error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
+  }
+}
+
+// Update Profile (for authenticated users)
+async function updateProfile(body, accessToken) {
+  const { name } = body;
+
+  if (!name) {
+    return response(400, {
+      code: 'ValidationError',
+      message: 'Name is required'
+    });
+  }
+
+  if (!accessToken) {
+    return response(401, {
+      code: 'Unauthorized',
+      message: 'Access token is required'
+    });
+  }
+
+  try {
+    const command = new UpdateUserAttributesCommand({
+      AccessToken: accessToken,
+      UserAttributes: [
+        {
+          Name: 'name',
+          Value: name
+        }
+      ]
+    });
+
+    await cognitoClient.send(command);
+
+    return response(200, {
+      message: 'Profile updated successfully',
+      name: name
+    });
+  } catch (error) {
+    console.error('UpdateProfile error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
+  }
+}
+
+// Delete Account (for authenticated users)
+async function deleteAccount(accessToken) {
+  if (!accessToken) {
+    return response(401, {
+      code: 'Unauthorized',
+      message: 'Access token is required'
+    });
+  }
+
+  try {
+    const command = new DeleteUserCommand({
+      AccessToken: accessToken
+    });
+
+    await cognitoClient.send(command);
+
+    return response(200, {
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('DeleteAccount error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
+  }
+}
+
+// Main handler
+exports.handler = async (event) => {
+  // Log event with sensitive data redacted
+  const logEvent = { ...event };
+  if (event.body) {
+    try {
+      const body = JSON.parse(event.body);
+      // Redact all password fields
+      if (body.password) body.password = '***REDACTED***';
+      if (body.oldPassword) body.oldPassword = '***REDACTED***';
+      if (body.newPassword) body.newPassword = '***REDACTED***';
+      logEvent.body = JSON.stringify(body);
+    } catch (e) {
+      logEvent.body = '***INVALID_JSON***';
+    }
+  }
+  console.log('Event (sanitized):', JSON.stringify(logEvent, null, 2));
+
+  // Handle CORS preflight
+  if (event.requestContext.http.method === 'OPTIONS') {
+    return response(200, {});
+  }
+
+  try {
+    // Get path - remove stage prefix if present
+    let path = event.rawPath || event.path;
+    
+    // Remove stage prefix (e.g., /dev/auth/register -> /auth/register)
+    if (path.startsWith('/dev/')) {
+      path = path.replace('/dev', '');
+    } else if (path.startsWith('/prod/')) {
+      path = path.replace('/prod', '');
+    }
+    
     const body = JSON.parse(event.body || '{}');
+    
+    // Get access token from Authorization header
+    const authHeader = event.headers?.authorization || event.headers?.Authorization;
+    const accessToken = authHeader?.replace('Bearer ', '');
 
-    if (path === '/auth/register') {
-      return await register(body);
-    } else if (path === '/auth/login') {
-      return await login(body);
-    } else {
-      return response(404, { error: 'Not found' });
+    console.log('Processing path:', path);
+
+    switch (path) {
+      case '/auth/register':
+        return await signUp(body);
+      
+      case '/auth/verify':
+        return await confirmSignUp(body);
+      
+      case '/auth/resend-code':
+        return await resendCode(body);
+      
+      case '/auth/login':
+        return await signIn(body);
+      
+      case '/auth/forgot-password':
+        return await forgotPassword(body);
+      
+      case '/auth/reset-password':
+        return await resetPassword(body);
+      
+      case '/auth/change-password':
+        return await changePassword(body, accessToken);
+      
+      case '/auth/update-profile':
+        return await updateProfile(body, accessToken);
+      
+      case '/auth/delete-account':
+        return await deleteAccount(accessToken);
+      
+      default:
+        return response(404, { 
+          code: 'NotFound',
+          message: `Endpoint not found: ${path}` 
+        });
     }
   } catch (error) {
-    console.error('Error:', error);
-    return response(500, { error: 'Internal server error', message: error.message });
+    console.error('Handler error:', error);
+    return response(500, { 
+      code: 'InternalServerError',
+      message: error.message 
+    });
   }
 };

@@ -1,4 +1,5 @@
 import { Text, TouchableOpacity } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 
 interface ButtonProps {
   content: string;
@@ -20,12 +21,12 @@ export function CustomButton ({
 
   return(
     <TouchableOpacity
-      className={baseStyle + ' ' + className}
+      className={twMerge(baseStyle + ' ' + className)}
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.8}
     >
-      <Text className={baseTextStyle + ' ' + textClassName}>
+      <Text className={twMerge(baseTextStyle + ' ' + textClassName)}>
         {content}
       </Text>
     </TouchableOpacity>

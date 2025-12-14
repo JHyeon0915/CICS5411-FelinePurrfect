@@ -1,13 +1,9 @@
 {
-  "name": "auth-lambda",
+  "name": "feline-purrfect-auth-lambda",
   "version": "1.0.0",
-  "description": "Authentication Lambda function",
+  "description": "Authentication Lambda function using AWS Cognito",
   "main": "index.js",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.470.0",
-    "@aws-sdk/lib-dynamodb": "^3.470.0",
-    "@aws-sdk/client-secrets-manager": "^3.470.0",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "@aws-sdk/client-cognito-identity-provider": "^3.0.0"
   }
 }

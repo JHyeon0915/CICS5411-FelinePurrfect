@@ -16,6 +16,11 @@ variable "project_name" {
   default     = "feline-purrfect"
 }
 
+variable "lab_role_arn" {
+  description = "ARN of the IAM role for Lambda functions"
+  type        = string
+}
+
 variable "owner_email" {
   description = "Owner email for notifications"
   type        = string
@@ -25,10 +30,4 @@ variable "budget_alert_threshold" {
   description = "Budget alert threshold in USD"
   type        = number
   default     = 40
-}
-
-variable "jwt_secret_length" {
-  description = "Length of JWT secret key"
-  type        = number
-  default     = 64
 }

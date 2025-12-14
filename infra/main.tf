@@ -1,3 +1,5 @@
+# infra/main.tf
+
 # Generate random suffix for globally unique resource names
 resource "random_string" "suffix" {
   length  = 8
@@ -18,7 +20,94 @@ locals {
   ml_data_bucket_name    = "${local.name_prefix}-ml-data-${random_string.suffix.result}"
 }
 
-# DynamoDB Module
+# ========================================
+# COGNITO USER POOL
+# ========================================
+
+module "cognito" {
+  source = "./modules/cognito"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+}
+
+# ========================================
+# STANDALONE AUTH LAMBDA (COGNITO)
+# ========================================
+
+resource "aws_lambda_function" "auth" {
+  filename         = "${path.module}/lambda-functions/dist/auth.zip"
+  function_name    = "${var.project_name}-${var.environment}-auth"
+  role             = var.lab_role_arn
+  handler          = "index.handler"
+  source_code_hash = filebase64sha256("${path.module}/lambda-functions/dist/auth.zip")
+  runtime          = "nodejs20.x"
+  timeout          = 30
+  memory_size      = 256
+
+  environment {
+    variables = {
+      COGNITO_USER_POOL_ID = module.cognito.user_pool_id
+      COGNITO_CLIENT_ID    = module.cognito.app_client_id
+    }
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-auth-lambda"
+    Environment = var.environment
+  }
+}
+
+# Lambda CloudWatch Log Group for Auth
+resource "aws_cloudwatch_log_group" "auth_lambda" {
+  name              = "/aws/lambda/${aws_lambda_function.auth.function_name}"
+  retention_in_days = 30
+
+  tags = {
+    Name        = "${var.project_name}-auth-logs"
+    Environment = var.environment
+  }
+}
+
+# Lambda Permission for API Gateway to invoke Auth Lambda
+resource "aws_lambda_permission" "auth_invoke" {
+  statement_id  = "AllowAPIGatewayInvokeAuth"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.auth.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${module.api_gateway.api_execution_arn}/*/*"
+}
+
+# ========================================
+# API GATEWAY
+# ========================================
+
+module "api_gateway" {
+  source = "./modules/api-gateway"
+
+  name_prefix = local.name_prefix
+  stage_name  = var.environment
+  
+  # Standalone Auth Lambda (Cognito)
+  lambda_auth_invoke_arn = aws_lambda_function.auth.invoke_arn
+  lambda_auth_name       = aws_lambda_function.auth.function_name
+  
+  # Other Lambdas from lambda module
+  lambda_cats_invoke_arn      = module.lambda.cats_invoke_arn
+  lambda_cats_name            = module.lambda.cats_function_name
+  lambda_logs_invoke_arn      = module.lambda.logs_invoke_arn
+  lambda_logs_name            = module.lambda.logs_function_name
+  lambda_dashboard_invoke_arn = module.lambda.dashboard_analysis_invoke_arn
+  lambda_dashboard_name       = module.lambda.dashboard_analysis_function_name
+  lambda_diseases_invoke_arn  = module.lambda.diseases_invoke_arn
+  lambda_diseases_name        = module.lambda.diseases_function_name
+}
+
+# ========================================
+# DYNAMODB MODULE
+# ========================================
+
 module "dynamodb" {
   source = "./modules/dynamodb"
 
@@ -26,7 +115,10 @@ module "dynamodb" {
   environment = var.environment
 }
 
-# S3 Module
+# ========================================
+# S3 MODULE
+# ========================================
+
 module "s3" {
   source = "./modules/s3"
 
@@ -36,52 +128,40 @@ module "s3" {
   environment            = var.environment
 }
 
-# Secrets Manager Module
-module "secrets_manager" {
-  source = "./modules/secrets-manager"
+# ========================================
+# LAMBDA MODULE (Business Logic Lambdas)
+# ========================================
 
-  name_prefix       = local.name_prefix
-  jwt_secret_length = var.jwt_secret_length
-}
-
-# Lambda Module
 module "lambda" {
   source = "./modules/lambda"
 
   name_prefix              = local.name_prefix
   environment              = var.environment
+  lab_role_arn             = var.lab_role_arn
   users_table_name         = module.dynamodb.users_table_name
   cats_table_name          = module.dynamodb.cats_table_name
   logs_table_name          = module.dynamodb.logs_table_name
   diseases_table_name      = module.dynamodb.diseases_table_name
   device_tokens_table_name = module.dynamodb.device_tokens_table_name
   cat_photos_bucket_name   = module.s3.cat_photos_bucket_name
-  jwt_secret_arn           = module.secrets_manager.jwt_secret_arn
   sns_topic_arn            = module.sns.reminders_topic_arn
 }
 
-# API Gateway Module
-module "api_gateway" {
-  source = "./modules/api-gateway"
+# ========================================
+# SNS MODULE
+# ========================================
 
-  name_prefix                  = local.name_prefix
-  lambda_auth_arn              = module.lambda.auth_function_arn
-  lambda_cats_arn              = module.lambda.cats_function_arn
-  lambda_logs_arn              = module.lambda.logs_function_arn
-  lambda_dashboard_arn         = module.lambda.dashboard_analysis_function_arn
-  lambda_authorizer_arn        = module.lambda.authorizer_function_arn
-  lambda_authorizer_invoke_arn = module.lambda.authorizer_invoke_arn
-}
-
-# SNS Module
 module "sns" {
   source = "./modules/sns"
 
   name_prefix = local.name_prefix
-  owner_email = var.owner_email # REPLACE IN terraform.tfvars
+  owner_email = var.owner_email
 }
 
-# EventBridge Module
+# ========================================
+# EVENTBRIDGE MODULE
+# ========================================
+
 module "eventbridge" {
   source = "./modules/eventbridge"
 
@@ -90,14 +170,20 @@ module "eventbridge" {
   check_missing_logs_function_name = module.lambda.check_missing_logs_function_name
 }
 
-# WAF Module
+# ========================================
+# WAF MODULE
+# ========================================
+
 module "waf" {
   source = "./modules/waf"
 
   name_prefix = local.name_prefix
 }
 
-# CloudWatch Module
+# ========================================
+# CLOUDWATCH MODULE
+# ========================================
+
 module "cloudwatch" {
   source = "./modules/cloudwatch"
 
@@ -108,10 +194,13 @@ module "cloudwatch" {
   budget_threshold      = var.budget_alert_threshold
 }
 
-# SageMaker Module
+# ========================================
+# SAGEMAKER MODULE (commented out for now)
+# ========================================
+
 # module "sagemaker" {
 #   source = "./modules/sagemaker"
-
+#
 #   name_prefix        = local.name_prefix
 #   ml_data_bucket_arn = module.s3.ml_data_bucket_arn
 # }

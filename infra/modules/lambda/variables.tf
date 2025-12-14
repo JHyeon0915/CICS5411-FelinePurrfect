@@ -8,6 +8,11 @@ variable "environment" {
   type        = string
 }
 
+variable "lab_role_arn" {
+  description = "ARN of LabRole for Lambda execution"
+  type        = string
+}
+
 variable "users_table_name" {
   description = "Users DynamoDB table name"
   type        = string
@@ -35,11 +40,6 @@ variable "device_tokens_table_name" {
 
 variable "cat_photos_bucket_name" {
   description = "Cat photos S3 bucket name"
-  type        = string
-}
-
-variable "jwt_secret_arn" {
-  description = "JWT secret ARN"
   type        = string
 }
 

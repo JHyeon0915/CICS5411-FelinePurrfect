@@ -1,41 +1,24 @@
+
+# infra/modules/lambda/main.tf
+
 # IAM Role for Lambda Functions
 data "aws_iam_role" "lab_role" {
   name = "LabRole"
 }
 
-# Auth Lambda Function
-resource "aws_lambda_function" "auth" {
-  filename         = "${path.module}/../../lambda-functions/dist/auth.zip"
-  function_name    = "${var.name_prefix}-auth"
-  role            = data.aws_iam_role.lab_role.arn
-  handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/auth.zip")
-  runtime         = "nodejs20.x"
-  timeout         = 30
-  memory_size     = 512
-  
-  environment {
-    variables = {
-      USERS_TABLE_NAME = var.users_table_name
-      JWT_SECRET_ARN   = var.jwt_secret_arn
-    }
-  }
-  
-  tags = {
-    Name = "${var.name_prefix}-auth-lambda"
-  }
-}
+# ========================================
+# CATS LAMBDA
+# ========================================
 
-# Cats Lambda Function
 resource "aws_lambda_function" "cats" {
   filename         = "${path.module}/../../lambda-functions/dist/cats.zip"
   function_name    = "${var.name_prefix}-cats"
-  role            = data.aws_iam_role.lab_role.arn
-  handler         = "index.handler"
+  role             = var.lab_role_arn
+  handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/cats.zip")
-  runtime         = "nodejs20.x"
-  timeout         = 30
-  memory_size     = 512
+  runtime          = "nodejs20.x"
+  timeout          = 30
+  memory_size      = 512
   
   environment {
     variables = {
@@ -45,20 +28,29 @@ resource "aws_lambda_function" "cats" {
   }
   
   tags = {
-    Name = "${var.name_prefix}-cats-lambda"
+    Name        = "${var.name_prefix}-cats-lambda"
+    Environment = var.environment
   }
 }
 
-# Logs Lambda Function
+resource "aws_cloudwatch_log_group" "cats" {
+  name              = "/aws/lambda/${aws_lambda_function.cats.function_name}"
+  retention_in_days = 30
+}
+
+# ========================================
+# LOGS LAMBDA
+# ========================================
+
 resource "aws_lambda_function" "logs" {
   filename         = "${path.module}/../../lambda-functions/dist/logs.zip"
   function_name    = "${var.name_prefix}-logs"
-  role            = data.aws_iam_role.lab_role.arn
-  handler         = "index.handler"
+  role             = var.lab_role_arn
+  handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/logs.zip")
-  runtime         = "nodejs20.x"
-  timeout         = 30
-  memory_size     = 512
+  runtime          = "nodejs20.x"
+  timeout          = 30
+  memory_size      = 512
   
   environment {
     variables = {
@@ -69,44 +61,60 @@ resource "aws_lambda_function" "logs" {
   }
   
   tags = {
-    Name = "${var.name_prefix}-logs-lambda"
+    Name        = "${var.name_prefix}-logs-lambda"
+    Environment = var.environment
   }
 }
 
-# Diseases Lambda Function
+resource "aws_cloudwatch_log_group" "logs" {
+  name              = "/aws/lambda/${aws_lambda_function.logs.function_name}"
+  retention_in_days = 30
+}
+
+# ========================================
+# DISEASES LAMBDA
+# ========================================
+
 resource "aws_lambda_function" "diseases" {
   filename         = "${path.module}/../../lambda-functions/dist/diseases.zip"
   function_name    = "${var.name_prefix}-diseases"
-  role            = data.aws_iam_role.lab_role.arn
-  handler         = "index.handler"
+  role             = var.lab_role_arn
+  handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/diseases.zip")
-  runtime         = "nodejs20.x"
-  timeout         = 30
-  memory_size     = 512
+  runtime          = "nodejs20.x"
+  timeout          = 30
+  memory_size      = 512
   
   environment {
     variables = {
-      LOGS_TABLE_NAME = var.logs_table_name
-      CATS_TABLE_NAME = var.cats_table_name
-      SNS_TOPIC_ARN   = var.sns_topic_arn
+      DISEASES_TABLE_NAME = var.diseases_table_name
     }
   }
   
   tags = {
-    Name = "${var.name_prefix}-logs-lambda"
+    Name        = "${var.name_prefix}-diseases-lambda"
+    Environment = var.environment
   }
 }
 
-# Dashboard analysis Lambda Function
+resource "aws_cloudwatch_log_group" "diseases" {
+  name              = "/aws/lambda/${aws_lambda_function.diseases.function_name}"
+  retention_in_days = 30
+}
+
+# ========================================
+# DASHBOARD ANALYSIS LAMBDA
+# ========================================
+
 resource "aws_lambda_function" "dashboard_analysis" {
   filename         = "${path.module}/../../lambda-functions/dist/dashboard-analysis.zip"
   function_name    = "${var.name_prefix}-dashboard-analysis"
-  role            = data.aws_iam_role.lab_role.arn
-  handler         = "index.handler"
+  role             = var.lab_role_arn
+  handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/dashboard-analysis.zip")
-  runtime         = "nodejs20.x"
-  timeout         = 30
-  memory_size     = 512
+  runtime          = "nodejs20.x"
+  timeout          = 30
+  memory_size      = 512
   
   environment {
     variables = {
@@ -116,20 +124,29 @@ resource "aws_lambda_function" "dashboard_analysis" {
   }
   
   tags = {
-    Name = "${var.name_prefix}-dashboard-analysis-lambda"
+    Name        = "${var.name_prefix}-dashboard-analysis-lambda"
+    Environment = var.environment
   }
 }
 
-# Check Missing Logs Lambda Function
+resource "aws_cloudwatch_log_group" "dashboard_analysis" {
+  name              = "/aws/lambda/${aws_lambda_function.dashboard_analysis.function_name}"
+  retention_in_days = 30
+}
+
+# ========================================
+# CHECK MISSING LOGS LAMBDA
+# ========================================
+
 resource "aws_lambda_function" "check_missing_logs" {
   filename         = "${path.module}/../../lambda-functions/dist/check-missing-logs.zip"
   function_name    = "${var.name_prefix}-check-missing-logs"
-  role            = data.aws_iam_role.lab_role.arn
-  handler         = "index.handler"
+  role             = var.lab_role_arn
+  handler          = "index.handler"
   source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/check-missing-logs.zip")
-  runtime         = "nodejs20.x"
-  timeout         = 60
-  memory_size     = 512
+  runtime          = "nodejs20.x"
+  timeout          = 60
+  memory_size      = 512
   
   environment {
     variables = {
@@ -142,64 +159,12 @@ resource "aws_lambda_function" "check_missing_logs" {
   }
   
   tags = {
-    Name = "${var.name_prefix}-check-missing-logs-lambda"
+    Name        = "${var.name_prefix}-check-missing-logs-lambda"
+    Environment = var.environment
   }
-}
-
-# JWT Authorizer Lambda Function
-resource "aws_lambda_function" "authorizer" {
-  filename         = "${path.module}/../../lambda-functions/dist/authorizer.zip"
-  function_name    = "${var.name_prefix}-jwt-authorizer"
-  role            = data.aws_iam_role.lab_role.arn
-  handler         = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/authorizer.zip")
-  runtime         = "nodejs20.x"
-  timeout         = 10
-  memory_size     = 256
-  
-  environment {
-    variables = {
-      JWT_SECRET_ARN = var.jwt_secret_arn
-    }
-  }
-  
-  tags = {
-    Name = "${var.name_prefix}-jwt-authorizer-lambda"
-  }
-}
-
-# CloudWatch Log Groups
-resource "aws_cloudwatch_log_group" "auth" {
-  name              = "/aws/lambda/${aws_lambda_function.auth.function_name}"
-  retention_in_days = 30
-}
-
-resource "aws_cloudwatch_log_group" "cats" {
-  name              = "/aws/lambda/${aws_lambda_function.cats.function_name}"
-  retention_in_days = 30
-}
-
-resource "aws_cloudwatch_log_group" "logs" {
-  name              = "/aws/lambda/${aws_lambda_function.logs.function_name}"
-  retention_in_days = 30
-}
-
-resource "aws_cloudwatch_log_group" "diseases" {
-  name              = "/aws/lambda/${aws_lambda_function.diseases.function_name}"
-  retention_in_days = 30
-}
-
-resource "aws_cloudwatch_log_group" "dashboard_analysis" {
-  name              = "/aws/lambda/${aws_lambda_function.dashboard_analysis.function_name}"
-  retention_in_days = 30
 }
 
 resource "aws_cloudwatch_log_group" "check_missing_logs" {
   name              = "/aws/lambda/${aws_lambda_function.check_missing_logs.function_name}"
-  retention_in_days = 30
-}
-
-resource "aws_cloudwatch_log_group" "authorizer" {
-  name              = "/aws/lambda/${aws_lambda_function.authorizer.function_name}"
   retention_in_days = 30
 }
