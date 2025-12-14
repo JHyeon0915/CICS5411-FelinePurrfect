@@ -108,6 +108,12 @@ resource "aws_apigatewayv2_route" "update_profile" {
   target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
 }
 
+resource "aws_apigatewayv2_route" "delete_account" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "DELETE /auth/delete-account"
+  target    = "integrations/${aws_apigatewayv2_integration.auth.id}"
+}
+
 resource "aws_lambda_permission" "auth" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"

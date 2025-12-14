@@ -1,4 +1,4 @@
-const { CognitoIdentityProviderClient, SignUpCommand, ConfirmSignUpCommand, InitiateAuthCommand, ResendConfirmationCodeCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ChangePasswordCommand, UpdateUserAttributesCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { CognitoIdentityProviderClient, SignUpCommand, ConfirmSignUpCommand, InitiateAuthCommand, ResendConfirmationCodeCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ChangePasswordCommand, UpdateUserAttributesCommand, DeleteUserCommand } = require('@aws-sdk/client-cognito-identity-provider');
 
 const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
@@ -288,8 +288,6 @@ async function updateProfile(body, accessToken) {
   }
 
   try {
-    const { UpdateUserAttributesCommand } = require('@aws-sdk/client-cognito-identity-provider');
-    
     const command = new UpdateUserAttributesCommand({
       AccessToken: accessToken,
       UserAttributes: [
@@ -308,6 +306,34 @@ async function updateProfile(body, accessToken) {
     });
   } catch (error) {
     console.error('UpdateProfile error:', error);
+    return response(400, {
+      code: error.name,
+      message: error.message
+    });
+  }
+}
+
+// Delete Account (for authenticated users)
+async function deleteAccount(accessToken) {
+  if (!accessToken) {
+    return response(401, {
+      code: 'Unauthorized',
+      message: 'Access token is required'
+    });
+  }
+
+  try {
+    const command = new DeleteUserCommand({
+      AccessToken: accessToken
+    });
+
+    await cognitoClient.send(command);
+
+    return response(200, {
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('DeleteAccount error:', error);
     return response(400, {
       code: error.name,
       message: error.message
@@ -381,6 +407,9 @@ exports.handler = async (event) => {
       
       case '/auth/update-profile':
         return await updateProfile(body, accessToken);
+      
+      case '/auth/delete-account':
+        return await deleteAccount(accessToken);
       
       default:
         return response(404, { 

@@ -1,6 +1,6 @@
 import { authApi } from '@/api/auth';
 import { CustomButton } from '@/components/common/CustomButton';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, useDeleteAccount } from '@/hooks/useAuth';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useQueryClient } from '@tanstack/react-query';
 import { router, useNavigation } from 'expo-router';
@@ -22,6 +22,8 @@ export default function EditProfileScreen() {
   const queryClient = useQueryClient();
   const [name, setName] = useState(user?.name || '');
   const [isLoading, setIsLoading] = useState(false);
+
+  const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
 
   const handleSave = useCallback(async () => {
     if (!name.trim()) {
@@ -102,6 +104,33 @@ export default function EditProfileScreen() {
     });
   }, [navigation, isLoading, name, user?.name, handleSave, handleCancel]);
 
+const handleDeleteAccount =useCallback(() => {
+  Alert.alert('Delete Account', 'Are you absolutely sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.', [
+    {
+      text: 'Cancel',
+      style: 'cancel',
+    },
+    {
+      text: 'Delete Account',
+      style: 'destructive',
+      onPress: () => {
+        // Double confirmation
+        Alert.alert('Final Confirmation', 'This is your last chance. Delete your account permanently?', [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Yes, Delete',
+            style: 'destructive',
+            onPress: () => deleteAccount(),
+          },
+        ]);
+      },
+    },
+  ]);
+  }, [deleteAccount]);
+
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -181,13 +210,22 @@ export default function EditProfileScreen() {
             />
 
             <TouchableOpacity
-              onPress={() => Alert.alert('Coming Soon', 'Delete account feature will be available soon')}
+              onPress={handleDeleteAccount}
+              disabled={isDeleting}
               className="bg-red-50 border border-red-200 rounded-xl px-6 py-4 flex-row items-center justify-center"
             >
               <FontAwesome6 name="trash-can" size={18} color="#ef4444" />
-              <Text className="text-red-600 font-semibold ml-3">Delete Account</Text>
+              <Text className="text-red-600 font-semibold ml-3">
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
+              </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Warning Text */}
+          <Text className="text-xs text-gray-500 text-center mt-4">
+            Deleting your account is permanent and cannot be undone.
+            All your data will be permanently deleted.
+          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

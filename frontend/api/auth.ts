@@ -233,4 +233,37 @@ export const authApi = {
 
     return updatedUser;
   },
+
+  // Delete Account
+  deleteAccount: async (): Promise<void> => {
+    const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+
+    if (!accessToken) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(`${AUTH_API_URL}/auth/delete-account`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw {
+        code: result.code || 'DeleteAccountError',
+        message: result.message || 'Failed to delete account',
+      };
+    }
+
+    // Clear all stored data
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+    await SecureStore.deleteItemAsync(USER_KEY);
+
+    return result;
+  },
 };
