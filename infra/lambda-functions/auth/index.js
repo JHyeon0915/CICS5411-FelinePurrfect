@@ -148,6 +148,7 @@ async function signIn(body) {
     return response(200, {
       message: 'Login successful',
       token: result.AuthenticationResult.IdToken,
+      accessToken: result.AuthenticationResult.AccessToken,  // ADD THIS
       refreshToken: result.AuthenticationResult.RefreshToken,
       expiresIn: result.AuthenticationResult.ExpiresIn,
       user: {
@@ -270,7 +271,7 @@ async function changePassword(body, accessToken) {
 
 // Main handler
 exports.handler = async (event) => {
-  // Log event with sensitive data redacted in CloudWatch
+  // Log event with sensitive data redacted
   const logEvent = { ...event };
   if (event.body) {
     try {

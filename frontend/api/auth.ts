@@ -4,7 +4,8 @@ import * as SecureStore from 'expo-secure-store';
 const AUTH_API_URL = process.env.EXPO_PUBLIC_AUTH_API_URL!;
 
 // Secure storage keys
-const TOKEN_KEY = 'auth_token';
+const TOKEN_KEY = 'auth_token';           // ID Token
+const ACCESS_TOKEN_KEY = 'access_token';  // Access Token
 const USER_KEY = 'user_data';
 
 export const authApi = {
@@ -25,7 +26,6 @@ export const authApi = {
 
   // Sign Up
   signUp: async (data: SignUpRequest): Promise<void> => {
-    console.log(AUTH_API_URL);
     const response = await fetch(`${AUTH_API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -33,8 +33,6 @@ export const authApi = {
     });
 
     const result = await response.json();
-
-    console.log(result);
 
     if (!response.ok) {
       throw {
@@ -103,8 +101,9 @@ export const authApi = {
       };
     }
 
-    // Store token and user data securely
+    // Store both ID token and Access token
     await SecureStore.setItemAsync(TOKEN_KEY, result.token);
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, result.accessToken);
     await SecureStore.setItemAsync(USER_KEY, JSON.stringify(result.user));
 
     return result;
@@ -113,6 +112,7 @@ export const authApi = {
   // Sign Out
   signOut: async (): Promise<void> => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
     await SecureStore.deleteItemAsync(USER_KEY);
   },
 
@@ -162,9 +162,9 @@ export const authApi = {
 
   // Change Password (for logged-in users)
   changePassword: async (oldPassword: string, newPassword: string): Promise<void> => {
-    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+    const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
 
-    if (!token) {
+    if (!accessToken) {
       throw new Error('Not authenticated');
     }
 
@@ -172,7 +172,7 @@ export const authApi = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${accessToken}`,  // Use ACCESS_TOKEN, not ID token
       },
       body: JSON.stringify({ oldPassword, newPassword }),
     });
@@ -189,8 +189,13 @@ export const authApi = {
     return result;
   },
 
-  // Get Auth Token (for API calls)
+  // Get Auth Token (for API calls) - returns ID token
   getAuthToken: async (): Promise<string | null> => {
     return await SecureStore.getItemAsync(TOKEN_KEY);
+  },
+
+  // Get Access Token (for Cognito operations)
+  getAccessToken: async (): Promise<string | null> => {
+    return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
   },
 };

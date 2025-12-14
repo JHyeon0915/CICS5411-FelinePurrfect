@@ -16,6 +16,10 @@ export interface SignInRequest {
 }
 
 export interface SignInResponse {
-  token: string;
+  message: string;
+  token: string;         // ID Token for user identification
+  accessToken: string;   // Access Token for API operations
+  refreshToken: string;
+  expiresIn: number;
   user: AuthUser;
 }
