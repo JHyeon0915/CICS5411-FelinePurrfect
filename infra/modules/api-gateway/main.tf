@@ -322,6 +322,13 @@ resource "aws_apigatewayv2_route" "get_disease" {
   target    = "integrations/${aws_apigatewayv2_integration.diseases.id}"
 }
 
+# Seed route (for initial data population)
+resource "aws_apigatewayv2_route" "seed_diseases" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /diseases/seed"
+  target    = "integrations/${aws_apigatewayv2_integration.diseases.id}"
+}
+
 resource "aws_lambda_permission" "diseases" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"

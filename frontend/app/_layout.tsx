@@ -43,6 +43,10 @@ export default function RootLayout() {
             name="(screens)/logs/[id]/edit"
             options={{ title: 'Edit Log' }}
           />
+          <Stack.Screen
+            name="(screens)/diseases/[id]/index"
+            options={{ title: 'Disease Detail' }}
+          />
           <Stack.Screen name="(screens)/profile/index" options={{ title: 'Profile' }} />
           <Stack.Screen name="(screens)/profile/edit" options={{ title: 'Edit Profile' }} />
         </Stack>
