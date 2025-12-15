@@ -68,6 +68,21 @@ output "check_missing_logs_function_name" {
   value       = aws_lambda_function.check_missing_logs.function_name
 }
 
+output "breed_detection_invoke_arn" {
+  description = "Breed detection Lambda invoke ARN"
+  value       = aws_lambda_function.breed_detection.invoke_arn
+}
+
+output "breed_detection_function_arn" {
+  description = "Breed detection Lambda function ARN"
+  value       = aws_lambda_function.breed_detection.arn
+}
+
+output "breed_detection_function_name" {
+  description = "Breed detection Lambda function name"
+  value       = aws_lambda_function.breed_detection.function_name
+}
+
 output "all_function_names" {
   description = "All Lambda function names"
   value = [
@@ -75,6 +90,7 @@ output "all_function_names" {
     aws_lambda_function.logs.function_name,
     aws_lambda_function.diseases.function_name,
     aws_lambda_function.dashboard_analysis.function_name,
-    aws_lambda_function.check_missing_logs.function_name
+    aws_lambda_function.check_missing_logs.function_name,
+    aws_lambda_function.breed_detection.function_name
   ]
 }

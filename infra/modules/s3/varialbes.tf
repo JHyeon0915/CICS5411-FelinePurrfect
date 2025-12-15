@@ -1,3 +1,5 @@
+# modules/s3/variables.tf
+
 variable "cat_photos_bucket_name" {
   description = "Name for cat photos bucket"
   type        = string

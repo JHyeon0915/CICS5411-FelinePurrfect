@@ -336,3 +336,35 @@ resource "aws_lambda_permission" "diseases" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
 }
+
+# ========================================
+# BREED-DETECTION LAMBDA INTEGRATION & ROUTES
+# ========================================
+
+# Breed Detection Integration
+resource "aws_apigatewayv2_integration" "breed_detection" {
+  api_id             = aws_apigatewayv2_api.main.id
+  integration_type   = "AWS_PROXY"
+  integration_uri    = var.lambda_breed_detection_invoke_arn
+  integration_method = "POST"
+  payload_format_version = "2.0"
+}
+
+# Breed Detection Route (with JWT auth)
+resource "aws_apigatewayv2_route" "detect_breed" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /detect-breed"
+  target    = "integrations/${aws_apigatewayv2_integration.breed_detection.id}"
+  
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+}
+
+# Lambda Permission for Breed Detection
+resource "aws_lambda_permission" "breed_detection" {
+  statement_id  = "AllowAPIGatewayInvokeBreedDetection"
+  action        = "lambda:InvokeFunction"
+  function_name = var.lambda_breed_detection_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
+}

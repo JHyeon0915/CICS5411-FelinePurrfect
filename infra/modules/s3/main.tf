@@ -1,3 +1,5 @@
+# modules/s3/main.tf
+
 # Cat Photos Bucket
 resource "aws_s3_bucket" "cat_photos" {
   bucket = var.cat_photos_bucket_name

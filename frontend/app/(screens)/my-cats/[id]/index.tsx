@@ -129,10 +129,18 @@ export default function CatDetailScreen() {
 
           {/* Content */}
           <View className="p-6">
-            {/* Name */}
-            <Text className="text-3xl font-bold text-gray-800 mb-2">
+            {/* Name & Breed */}
+            <Text className="text-3xl font-bold text-gray-800 mb-1">
               {cat.name}
             </Text>
+            {cat.breed && (
+              <View className="flex-row items-center mb-4">
+                <FontAwesome6 name="paw" size={14} color="#9333ea" />
+                <Text className="text-purple-600 text-base font-medium ml-2">
+                  {cat.breed}
+                </Text>
+              </View>
+            )}
 
             {/* Info Cards */}
             <View className="flex-row flex-wrap gap-3 mb-6">

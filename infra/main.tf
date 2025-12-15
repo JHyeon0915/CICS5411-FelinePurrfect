@@ -99,14 +99,16 @@ module "api_gateway" {
   cognito_app_client_id  = module.cognito.app_client_id
   
   # Other Lambdas from lambda module
-  lambda_cats_invoke_arn      = module.lambda.cats_invoke_arn
-  lambda_cats_name            = module.lambda.cats_function_name
-  lambda_logs_invoke_arn      = module.lambda.logs_invoke_arn
-  lambda_logs_name            = module.lambda.logs_function_name
-  lambda_dashboard_invoke_arn = module.lambda.dashboard_analysis_invoke_arn
-  lambda_dashboard_name       = module.lambda.dashboard_analysis_function_name
-  lambda_diseases_invoke_arn  = module.lambda.diseases_invoke_arn
-  lambda_diseases_name        = module.lambda.diseases_function_name
+  lambda_cats_invoke_arn            = module.lambda.cats_invoke_arn
+  lambda_cats_name                  = module.lambda.cats_function_name
+  lambda_logs_invoke_arn            = module.lambda.logs_invoke_arn
+  lambda_logs_name                  = module.lambda.logs_function_name
+  lambda_dashboard_invoke_arn       = module.lambda.dashboard_analysis_invoke_arn
+  lambda_dashboard_name             = module.lambda.dashboard_analysis_function_name
+  lambda_diseases_invoke_arn        = module.lambda.diseases_invoke_arn
+  lambda_diseases_name              = module.lambda.diseases_function_name
+  lambda_breed_detection_invoke_arn = module.lambda.breed_detection_invoke_arn
+  lambda_breed_detection_name       = module.lambda.breed_detection_function_name
 }
 
 # ========================================
@@ -154,6 +156,8 @@ module "lambda" {
   cat_photos_bucket_name   = module.s3.cat_photos_bucket_name
 
   sns_topic_arn            = module.sns.reminders_topic_arn
+
+  sagemaker_endpoint_name = module.sagemaker.sagemaker_endpoint_name
 }
 
 # ========================================
@@ -208,9 +212,10 @@ module "cloudwatch" {
 # SAGEMAKER MODULE (commented out for now)
 # ========================================
 
-# module "sagemaker" {
-#   source = "./modules/sagemaker"
-#
-#   name_prefix        = local.name_prefix
-#   ml_data_bucket_arn = module.s3.ml_data_bucket_arn
-# }
+module "sagemaker" {
+  source = "./modules/sagemaker"
+
+  name_prefix         = local.name_prefix
+  environment         = var.environment
+  ml_data_bucket_name = module.s3.ml_data_bucket_name
+}

@@ -172,3 +172,35 @@ resource "aws_cloudwatch_log_group" "check_missing_logs" {
   name              = "/aws/lambda/${aws_lambda_function.check_missing_logs.function_name}"
   retention_in_days = 30
 }
+
+
+# ========================================
+# BREED DETECTION LAMBDA
+# ========================================
+
+resource "aws_lambda_function" "breed_detection" {
+  filename         = "${path.module}/../../lambda-functions/dist/breed-detection.zip"
+  function_name    = "${var.name_prefix}-breed-detection"
+  role             = var.lab_role_arn
+  handler          = "index.handler"
+  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/breed-detection.zip")
+  runtime          = "nodejs20.x"
+  timeout          = 60
+  memory_size      = 512
+  
+  environment {
+    variables = {
+      SAGEMAKER_ENDPOINT_NAME = var.sagemaker_endpoint_name
+    }
+  }
+  
+  tags = {
+    Name        = "${var.name_prefix}-check-missing-logs-lambda"
+    Environment = var.environment
+  }
+}
+
+resource "aws_cloudwatch_log_group" "breed_detection" {
+  name              = "/aws/lambda/${aws_lambda_function.breed_detection.function_name}"
+  retention_in_days = 30
+}
