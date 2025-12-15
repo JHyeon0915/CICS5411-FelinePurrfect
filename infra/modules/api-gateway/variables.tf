@@ -58,6 +58,16 @@ variable "lambda_diseases_name" {
   type        = string
 }
 
+variable "lambda_breed_detection_invoke_arn" {
+  description = "Invoke ARN of the breed detection Lambda function"
+  type        = string
+}
+
+variable "lambda_breed_detection_name" {
+  description = "Name of the breed detection Lambda function"
+  type        = string
+}
+
 variable "cognito_user_pool_id" {
   description = "Cognito User Pool ID for JWT authorizer"
   type        = string

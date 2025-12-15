@@ -1,35 +1,20 @@
-# SageMaker Execution Role
-resource "aws_iam_role" "sagemaker_role" {
-  name = "${var.name_prefix}-sagemaker-role"
-  
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "sagemaker.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
+# modules/sagemaker/main.tf
 
-resource "aws_iam_role_policy_attachment" "sagemaker_full_access" {
-  role       = aws_iam_role.sagemaker_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+# IAM Role for SageMaker
+data "aws_iam_role" "lab_role" {
+  name = "LabRole"
 }
 
 # SageMaker Model
 resource "aws_sagemaker_model" "cat_breed_detector" {
   name               = "${var.name_prefix}-cat-breed-detector"
-  execution_role_arn = aws_iam_role.sagemaker_role.arn
+  execution_role_arn = data.aws_iam_role.lab_role.arn
   
   primary_container {
-    # REPLACE WITH YOUR ACTUAL MODEL IMAGE AND DATA
-    image          = "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.0-cpu-py310"
-    model_data_url = "s3://${var.ml_data_bucket_arn}/models/cat-breed-model.tar.gz"
+    # PyTorch inference image (available in us-east-1)
+    image = "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.0-cpu-py310"
+
+    model_data_url = "s3://${var.ml_data_bucket_name}/models/model.tar.gz"
   }
   
   tags = {
@@ -45,11 +30,12 @@ resource "aws_sagemaker_endpoint_configuration" "cat_breed_detector" {
     variant_name           = "AllTraffic"
     model_name             = aws_sagemaker_model.cat_breed_detector.name
     initial_instance_count = 1
-    instance_type          = "ml.t2.medium"  # Cheapest option
+    instance_type          = "ml.m5.large"  # Learner Lab supported type
   }
   
   tags = {
     Name = "${var.name_prefix}-endpoint-config"
+    Environment = var.environment
   }
 }
 
@@ -59,6 +45,7 @@ resource "aws_sagemaker_endpoint" "cat_breed_detector" {
   endpoint_config_name = aws_sagemaker_endpoint_configuration.cat_breed_detector.name
   
   tags = {
-    Name = "${var.name_prefix}-sagemaker-endpoint"
+    Name        = "${var.name_prefix}-sagemaker-endpoint"
+    Environment = var.environment
   }
 }

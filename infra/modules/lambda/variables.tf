@@ -54,3 +54,8 @@ variable "sns_topic_arn" {
   description = "SNS topic ARN for notifications"
   type        = string
 }
+
+variable "sagemaker_endpoint_name" {
+  description = "SageMaker endpoint name for breed detection"
+  type        = string
+}

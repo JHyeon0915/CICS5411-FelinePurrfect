@@ -1,3 +1,4 @@
+import { File } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
@@ -46,7 +47,7 @@ export function useImagePicker(options?: UseImagePickerOptions) {
         mediaTypes: ['images'],
         allowsEditing: options?.allowsEditing ?? true,
         aspect: options?.aspect ?? [1, 1],
-        quality: options?.quality ?? 0.8,
+        quality: options?.quality ?? 0.5,
       });
 
       if (!result.canceled) {
@@ -65,6 +66,19 @@ export function useImagePicker(options?: UseImagePickerOptions) {
     }
   };
 
+  // NEW: Convert URI to base64
+  const convertToBase64 = async (uri: string): Promise<string> => {
+    try {
+      // Read file as base64
+      const file = new File(uri);
+      const base64 = await file.base64();
+      return base64;
+    } catch (error) {
+      console.error('Error converting to base64:', error);
+      throw error;
+    }
+  };
+
   const clearImage = () => {
     setImageUri(null);
   };
@@ -73,6 +87,7 @@ export function useImagePicker(options?: UseImagePickerOptions) {
     imageUri,
     setImageUri,
     pickImage,
+    convertToBase64,
     clearImage,
     isPickingImage,
   };

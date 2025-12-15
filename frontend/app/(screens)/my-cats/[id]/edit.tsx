@@ -1,7 +1,9 @@
+import { breedDetectionApi } from '@/api/breedDetection';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ErrorView } from '@/components/common/ErrorView';
 import { LoadingIndicator } from '@/components/common/LoadingIndicator';
 import { RequiredIndicator } from '@/components/common/RequiredIndicator';
+import { BreedPicker } from '@/components/ui/BreedPicker';
 import { useCats, useUpdateCat } from '@/hooks/useCats';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -25,14 +27,16 @@ export default function EditCatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: cats = [], isLoading: catsLoading } = useCats();
   const updateCatMutation = useUpdateCat();
-  const { imageUri, setImageUri, pickImage, isPickingImage } = useImagePicker();
+  const { imageUri, setImageUri, pickImage, convertToBase64, isPickingImage } = useImagePicker();
 
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [sex, setSex] = useState<'male' | 'female'>('female');
+  const [breed, setBreed] = useState<string | null>(null);
   const [weight, setWeight] = useState('');
   const [adoptedDate, setAdoptedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [detectingBreed, setDetectingBreed] = useState(false);
 
   const cat = cats.find(c => c.catId === id);
 
@@ -42,11 +46,58 @@ export default function EditCatScreen() {
       setName(cat.name);
       setAge(cat.age.toString());
       setSex(cat.sex);
+      setBreed(cat.breed || null);
       setWeight(cat.weight?.toString() || '');
       setImageUri(cat.photoUrl || '');
       setAdoptedDate(new Date(cat.adoptedDate));
     }
   }, [cat, setImageUri]);
+
+  // Detect breed when new image is picked
+  const handlePickImage = async () => {
+    const uri = await pickImage();
+    
+    if (uri) {
+      console.log('New image picked, URI:', uri);
+      
+      // Auto-detect breed
+      setDetectingBreed(true);
+      try {
+        console.log('Converting image to base64...');
+        const base64Image = await convertToBase64(uri);
+        
+        console.log('Base64 length:', base64Image.length);
+        console.log('Calling breed detection API...');
+        
+        const result = await breedDetectionApi.detectBreed(base64Image);
+        
+        console.log('Breed detected:', result);
+        setBreed(result.breed);
+        
+        if (result.fallback) {
+          Alert.alert(
+            'Breed Detection',
+            result.message || 'Could not detect breed automatically. Please select manually.',
+            [{ text: 'OK' }]
+          );
+        } else {
+          Alert.alert(
+            'Breed Detected!',
+            `We detected your cat as ${result.breed} (${(result.confidence * 100).toFixed(1)}% confident). You can change this if it's incorrect.`,
+            [{ text: 'OK' }]
+          );
+        }
+      } catch (error) {
+        console.error('Breed detection error:', error);
+        Alert.alert(
+          'Breed Detection Failed',
+          'Could not detect breed automatically. Please select manually.'
+        );
+      } finally {
+        setDetectingBreed(false);
+      }
+    }
+  };
 
   const handleUpdate = () => {
     if (!imageUri) {
@@ -71,9 +122,10 @@ export default function EditCatScreen() {
       name: name.trim(),
       age: Number(age),
       sex,
+      breed: breed || 'Unknown',
       adoptedDate: adoptedDate.toISOString(),
       weight: weight ? Number(weight) : null,
-      photo: imageUri, // Will be converted to base64 in API if it's a local file
+      photo: imageUri,
     };
 
     updateCatMutation.mutate(updatedCat, {
@@ -102,12 +154,20 @@ export default function EditCatScreen() {
           {/* Photo Picker */}
           <View className='flex-row justify-center gap-x-1'>
             <TouchableOpacity
-              onPress={pickImage}
-              disabled={isPickingImage}
+              onPress={handlePickImage}
+              disabled={isPickingImage || detectingBreed}
               className="w-32 h-32 bg-gray-100 rounded-2xl self-center mb-6 items-center justify-center overflow-hidden"
             >
               {imageUri ? (
-                <Image source={{ uri: imageUri }} className="w-full h-full" />
+                <>
+                  <Image source={{ uri: imageUri }} className="w-full h-full" />
+                  {detectingBreed && (
+                    <View className="absolute inset-0 bg-black/50 items-center justify-center">
+                      <FontAwesome6 name="spinner" size={24} color="white" />
+                      <Text className="text-white text-xs mt-2">Detecting...</Text>
+                    </View>
+                  )}
+                </>
               ) : (
                 <View className="items-center">
                   <FontAwesome6 name="camera" size={32} color="#9ca3af" />
@@ -117,6 +177,16 @@ export default function EditCatScreen() {
             </TouchableOpacity>
             <RequiredIndicator />
           </View>
+
+          {/* AI Detection Info - Only show if image changed */}
+          {detectingBreed && (
+            <View className="mb-4 bg-purple-50 rounded-xl p-3 flex-row items-start">
+              <FontAwesome6 name="wand-magic-sparkles" size={16} color="#9333ea" />
+              <Text className="text-xs text-purple-700 ml-2 flex-1">
+                AI-powered breed detection is analyzing your new photo
+              </Text>
+            </View>
+          )}
   
           {/* Name Input */}
           <View className="mb-4">
@@ -129,6 +199,18 @@ export default function EditCatScreen() {
               onChangeText={setName}
               placeholder="Enter cat's name"
               className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800"
+            />
+          </View>
+
+          {/* Breed Picker */}
+          <View className="mb-4">
+            <Text className="text-gray-700 font-semibold mb-2">
+              Breed
+            </Text>
+            <BreedPicker 
+              value={breed} 
+              onChange={setBreed}
+              detecting={detectingBreed}
             />
           </View>
   
@@ -249,7 +331,7 @@ export default function EditCatScreen() {
           <CustomButton
             content={updateCatMutation.isPending ? 'Updating...' : 'Update Cat'}
             onPress={handleUpdate}
-            disabled={updateCatMutation.isPending}
+            disabled={updateCatMutation.isPending || detectingBreed}
           />
         </ScrollView>
       </KeyboardAvoidingView>
