@@ -164,6 +164,7 @@ module "sns" {
   source = "./modules/sns"
 
   name_prefix = local.name_prefix
+  environment = var.environment
   owner_email = var.owner_email
 }
 

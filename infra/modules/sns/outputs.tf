@@ -1,3 +1,5 @@
+# modules/sns/outputs.tf
+
 output "reminders_topic_arn" {
   description = "Daily reminders SNS topic ARN"
   value       = aws_sns_topic.reminders.arn

@@ -1,3 +1,5 @@
+# modules/sns/main.tf
+
 # Daily Reminders Topic
 resource "aws_sns_topic" "reminders" {
   name         = "${var.name_prefix}-daily-reminders"
@@ -5,6 +7,7 @@ resource "aws_sns_topic" "reminders" {
   
   tags = {
     Name = "${var.name_prefix}-reminders-topic"
+    Environment = var.environment
   }
 }
 
@@ -15,7 +18,15 @@ resource "aws_sns_topic" "system_alerts" {
   
   tags = {
     Name = "${var.name_prefix}-system-alerts-topic"
+    Environment = var.environment
   }
+}
+
+# Email Subscription for Daily Reminders (for testing)
+resource "aws_sns_topic_subscription" "reminders_email" {
+  topic_arn = aws_sns_topic.reminders.arn
+  protocol  = "email"
+  endpoint  = var.owner_email
 }
 
 # Email Subscription for System Alerts
