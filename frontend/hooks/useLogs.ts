@@ -8,7 +8,7 @@ const LOGS_QUERY_KEY = ['logs'];
 export function useLogs() {
   return useQuery({
     queryKey: LOGS_QUERY_KEY,
-    queryFn: logsApi.getLogs,
+    queryFn: () => logsApi.getLogs(),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
@@ -17,7 +17,7 @@ export function useLogs() {
 export function useLogsByCat(catId: string) {
   return useQuery({
     queryKey: [...LOGS_QUERY_KEY, 'cat', catId],
-    queryFn: () => logsApi.getLogsByCat(catId),
+    queryFn: () => logsApi.getLogs(catId),
     staleTime: 1000 * 60 * 5,
   });
 }

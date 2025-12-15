@@ -1,3 +1,5 @@
+# infra/modules/s3/outputs.tf
+
 output "cat_photos_bucket_name" {
   description = "Cat photos bucket name"
   value       = aws_s3_bucket.cat_photos.id

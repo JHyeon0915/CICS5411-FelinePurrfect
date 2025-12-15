@@ -43,8 +43,8 @@ export default function MyCatsScreen() {
           </View>
         ) : (
           <>
-            {cats.map((cat) => <CatCard key={cat.id} cat={cat} />)}
-            <AddCatCard onPress={() => router.push('/(screens)/my-cats/create')} />
+            {cats.map((cat) => <CatCard key={cat.catId} cat={cat} />)}
+            <AddCatCard onPress={() => router.push('/my-cats/create')} />
           </>
         )}
       </ScrollView>

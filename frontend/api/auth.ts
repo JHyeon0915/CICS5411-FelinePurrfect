@@ -14,8 +14,9 @@ export const authApi = {
     try {
       const userData = await SecureStore.getItemAsync(USER_KEY);
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
+      const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
       
-      if (userData && token) {
+      if (userData && token && accessToken) {
         return JSON.parse(userData);
       }
       return null;

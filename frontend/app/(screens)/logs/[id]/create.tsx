@@ -10,15 +10,15 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -87,7 +87,7 @@ export default function CreateLogScreen() {
     return <LoadingIndicator />;
   }
 
-  const cat = cats.find(c => c.id === catId);
+  const cat = cats.find(c => c.catId === catId);
 
   if (!cat) {
     return (
@@ -122,9 +122,9 @@ export default function CreateLogScreen() {
           {/* Cat Display */}
           <View className="mb-8">
             <View className="flex-row items-center justify-center gap-x-1 px-4 py-4 rounded-xl bg-gray-50">
-              {cat.photoUri ? (
+              {cat.photoUrl ? (
                 <Image 
-                  source={{ uri: cat.photoUri }} 
+                  source={{ uri: cat.photoUrl }} 
                   className="w-8 h-8 rounded-full mr-2"
                 />
               ) : (

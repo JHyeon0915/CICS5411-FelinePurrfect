@@ -1,3 +1,5 @@
+# infra/modules/dynamodb/outputs.tf
+
 output "users_table_name" {
   description = "Users table name"
   value       = aws_dynamodb_table.users.name

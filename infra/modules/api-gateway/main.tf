@@ -42,6 +42,19 @@ resource "aws_apigatewayv2_stage" "main" {
   }
 }
 
+# Cognito JWT Authorizer
+resource "aws_apigatewayv2_authorizer" "cognito" {
+  api_id           = aws_apigatewayv2_api.main.id
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+  name             = "${var.name_prefix}-cognito-authorizer"
+
+  jwt_configuration {
+    audience = [var.cognito_app_client_id]
+    issuer   = "https://cognito-idp.${var.aws_region}.amazonaws.com/${var.cognito_user_pool_id}"
+  }
+}
+
 # CloudWatch Log Group for API Gateway
 resource "aws_cloudwatch_log_group" "api_gateway" {
   name              = "/aws/apigateway/${var.name_prefix}-api"
@@ -138,34 +151,50 @@ resource "aws_apigatewayv2_route" "get_cats" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /cats"
   target    = "integrations/${aws_apigatewayv2_integration.cats.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "create_cat" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "POST /cats"
   target    = "integrations/${aws_apigatewayv2_integration.cats.id}"
+    
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "get_cat" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /cats/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.cats.id}"
+    
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "update_cat" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "PUT /cats/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.cats.id}"
+    
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "delete_cat" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "DELETE /cats/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.cats.id}"
+    
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
+# Lambda Permission for Cats
 resource "aws_lambda_permission" "cats" {
-  statement_id  = "AllowAPIGatewayInvoke"
+  statement_id  = "AllowAPIGatewayInvokeCats"
   action        = "lambda:InvokeFunction"
   function_name = var.lambda_cats_name
   principal     = "apigateway.amazonaws.com"
@@ -188,30 +217,45 @@ resource "aws_apigatewayv2_route" "get_logs" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /logs"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "create_log" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "POST /logs"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+   authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "get_log" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /logs/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "update_log" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "PUT /logs/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_apigatewayv2_route" "delete_log" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "DELETE /logs/{id}"
   target    = "integrations/${aws_apigatewayv2_integration.logs.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_lambda_permission" "logs" {
@@ -275,6 +319,13 @@ resource "aws_apigatewayv2_route" "search_diseases" {
 resource "aws_apigatewayv2_route" "get_disease" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /diseases/{id}"
+  target    = "integrations/${aws_apigatewayv2_integration.diseases.id}"
+}
+
+# Seed route (for initial data population)
+resource "aws_apigatewayv2_route" "seed_diseases" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /diseases/seed"
   target    = "integrations/${aws_apigatewayv2_integration.diseases.id}"
 }
 

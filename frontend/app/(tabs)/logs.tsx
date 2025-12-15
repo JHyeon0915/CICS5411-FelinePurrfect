@@ -35,7 +35,7 @@ export default function LogsScreen() {
   }
 
   // Get cats to display based on selected filter
-  const displayCats = selectedCatId === 'all' ? cats : cats.filter(c => c.id === selectedCatId);
+  const displayCats = selectedCatId === 'all' ? cats : cats.filter(c => c.catId === selectedCatId);
 
   // Get logs for selected date
   const logsForDate = logs.filter(log => log.date === selectedDateString);
@@ -81,20 +81,20 @@ export default function LogsScreen() {
 
             {/* Individual Cat Tabs */}
             {cats.map(cat => {
-              const catLogCount = logsForDate.filter(log => log.catId === cat.id).length;
-              const isSelected = selectedCatId === cat.id;
+              const catLogCount = logsForDate.filter(log => log.catId === cat.catId).length;
+              const isSelected = selectedCatId === cat.catId;
               
               return (
                 <TouchableOpacity
-                  key={cat.id}
-                  onPress={() => setSelectedCatId(cat.id)}
+                  key={cat.catId}
+                  onPress={() => setSelectedCatId(cat.catId)}
                   className={`px-4 py-2 rounded-full flex-row items-center ${
                     isSelected ? 'bg-primary-600' : 'bg-gray-100'
                   }`}
                 >
-                  {cat.photoUri ? (
+                  {cat.photoUrl ? (
                     <Image 
-                      source={{ uri: cat.photoUri }} 
+                      source={{ uri: cat.photoUrl }} 
                       className="w-6 h-6 rounded-full mr-2"
                     />
                   ) : (
@@ -148,13 +148,13 @@ export default function LogsScreen() {
         ) : (
           displayCats.map(cat => {
             // Find log for this cat on selected date
-            const existingLog = logsForDate.find(log => log.catId === cat.id);
+            const existingLog = logsForDate.find(log => log.catId === cat.catId);
 
             if (existingLog) {
               // Show existing log
               return (
                 <LogCard
-                  key={cat.id}
+                  key={cat.catId}
                   log={existingLog}
                   cat={cat}
                   onPress={() => router.push(`/logs/${existingLog.id}`)}
@@ -164,11 +164,11 @@ export default function LogsScreen() {
               // Show add log card
               return (
                 <AddLogCard
-                  key={cat.id}
+                  key={cat.catId}
                   cat={cat}
                   onPress={() => router.push({
                     pathname: '/logs/[id]/create',
-                    params: { id: cat.id, date: selectedDateString },
+                    params: { id: cat.catId, date: selectedDateString },
                   })}
                 />
               );

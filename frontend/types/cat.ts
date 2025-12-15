@@ -1,18 +1,27 @@
 export interface CatRequest {
   name: string;
-  photoUri: string | null;
   age: number;
   sex: 'male' | 'female';
   adoptedDate: string; // ISO date string
   weight: number | null;
+  breed?: string;
+  color?: string;
+  microchipId?: string;
+  photo?: string; // base64 encoded image
 }
 
 export interface CatResponse {
-  id: string;
+  catId: string;
+  userId: string;
   name: string;
-  photoUri: string | null;
   age: number;
   sex: 'male' | 'female';
   adoptedDate: string; // ISO date string
   weight: number | null;
+  breed?: string;
+  color?: string;
+  microchipId?: string;
+  photoUrl?: string;
+  createdAt: string;
+  updatedAt: string;
 }

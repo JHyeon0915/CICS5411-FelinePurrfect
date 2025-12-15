@@ -1,3 +1,5 @@
+# infra/modules/lambda/variables.tf
+
 variable "name_prefix" {
   description = "Prefix for resource names"
   type        = string
@@ -5,6 +7,11 @@ variable "name_prefix" {
 
 variable "environment" {
   description = "Environment name"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region to deploy resources"
   type        = string
 }
 
