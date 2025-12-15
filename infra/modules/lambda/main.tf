@@ -110,12 +110,12 @@ resource "aws_cloudwatch_log_group" "diseases" {
 # DASHBOARD ANALYSIS LAMBDA
 # ========================================
 
-resource "aws_lambda_function" "dashboard_analysis" {
-  filename         = "${path.module}/../../lambda-functions/dist/dashboard-analysis.zip"
-  function_name    = "${var.name_prefix}-dashboard-analysis"
+resource "aws_lambda_function" "dashboard_analytics" {
+  filename         = "${path.module}/../../lambda-functions/dist/dashboard-analytics.zip"
+  function_name    = "${var.name_prefix}-dashboard-analytics"
   role             = var.lab_role_arn
   handler          = "index.handler"
-  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/dashboard-analysis.zip")
+  source_code_hash = filebase64sha256("${path.module}/../../lambda-functions/dist/dashboard-analytics.zip")
   runtime          = "nodejs20.x"
   timeout          = 30
   memory_size      = 512
@@ -128,13 +128,13 @@ resource "aws_lambda_function" "dashboard_analysis" {
   }
   
   tags = {
-    Name        = "${var.name_prefix}-dashboard-analysis-lambda"
+    Name        = "${var.name_prefix}-dashboard-analytics-lambda"
     Environment = var.environment
   }
 }
 
-resource "aws_cloudwatch_log_group" "dashboard_analysis" {
-  name              = "/aws/lambda/${aws_lambda_function.dashboard_analysis.function_name}"
+resource "aws_cloudwatch_log_group" "dashboard_analytics" {
+  name              = "/aws/lambda/${aws_lambda_function.dashboard_analytics.function_name}"
   retention_in_days = 30
 }
 

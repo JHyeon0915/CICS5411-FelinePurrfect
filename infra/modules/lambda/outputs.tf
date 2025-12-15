@@ -43,19 +43,19 @@ output "diseases_invoke_arn" {
   value       = aws_lambda_function.diseases.invoke_arn
 }
 
-output "dashboard_analysis_function_arn" {
-  description = "Dashboard analysis Lambda function ARN"
-  value       = aws_lambda_function.dashboard_analysis.arn
+output "dashboard_analytics_function_arn" {
+  description = "Dashboard analytics Lambda function ARN"
+  value       = aws_lambda_function.dashboard_analytics.arn
 }
 
-output "dashboard_analysis_function_name" {
-  description = "Dashboard analysis Lambda function name"
-  value       = aws_lambda_function.dashboard_analysis.function_name
+output "dashboard_analytics_function_name" {
+  description = "Dashboard analytics Lambda function name"
+  value       = aws_lambda_function.dashboard_analytics.function_name
 }
 
-output "dashboard_analysis_invoke_arn" {
-  description = "Dashboard analysis Lambda invoke ARN"
-  value       = aws_lambda_function.dashboard_analysis.invoke_arn
+output "dashboard_analytics_invoke_arn" {
+  description = "Dashboard analytics Lambda invoke ARN"
+  value       = aws_lambda_function.dashboard_analytics.invoke_arn
 }
 
 output "check_missing_logs_function_arn" {
@@ -89,7 +89,7 @@ output "all_function_names" {
     aws_lambda_function.cats.function_name,
     aws_lambda_function.logs.function_name,
     aws_lambda_function.diseases.function_name,
-    aws_lambda_function.dashboard_analysis.function_name,
+    aws_lambda_function.dashboard_analytics.function_name,
     aws_lambda_function.check_missing_logs.function_name,
     aws_lambda_function.breed_detection.function_name
   ]
