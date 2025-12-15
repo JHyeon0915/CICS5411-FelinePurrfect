@@ -1,6 +1,14 @@
+# modules/eventbridge/variables.tf
+
 variable "name_prefix" {
   description = "Prefix for resource names"
   type        = string
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "dev"
 }
 
 variable "check_missing_logs_lambda_arn" {
