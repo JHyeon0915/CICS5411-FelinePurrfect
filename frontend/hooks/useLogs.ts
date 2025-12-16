@@ -4,21 +4,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const LOGS_QUERY_KEY = ['logs'];
 
-// Get all logs
-export function useLogs() {
+// Get all logs or logs by catId
+export function useLogs(catId?: string) {
   return useQuery({
-    queryKey: LOGS_QUERY_KEY,
-    queryFn: () => logsApi.getLogs(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-}
-
-// Get logs for specific cat
-export function useLogsByCat(catId: string) {
-  return useQuery({
-    queryKey: [...LOGS_QUERY_KEY, 'cat', catId],
+    queryKey: catId ? ['logs', catId] : ['logs'],
     queryFn: () => logsApi.getLogs(catId),
-    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -33,6 +23,8 @@ export function useAddLog() {
         ...old,
         newLog,
       ]);
+
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'analytics'] });
     },
   });
 }
@@ -52,6 +44,9 @@ export function useUpdateLog() {
       );
       
       return { previousLogs };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'analytics'] });
     },
     onError: (err, updatedLog, context) => {
       if (context?.previousLogs) {
@@ -79,6 +74,9 @@ export function useDeleteLog() {
       );
       
       return { previousLogs };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'analytics'] });
     },
     onError: (err, deletedId, context) => {
       if (context?.previousLogs) {

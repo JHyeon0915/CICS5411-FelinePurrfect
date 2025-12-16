@@ -37,6 +37,7 @@ export function useAddCat() {
         newCat,
       ]);
       
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'analytics'] });
       Alert.alert('Success', 'Cat added successfully!');
     },
     onError: (error: any) => {
@@ -64,6 +65,7 @@ export function useUpdateCat() {
       return { previousCats };
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'analytics'] });
       Alert.alert('Success', 'Cat updated successfully!');
     },
     onError: (err: any, updatedCat, context) => {
@@ -88,6 +90,7 @@ export function useDeleteCat() {
     mutationFn: catsApi.deleteCat,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CATS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'analytics'] });
       Alert.alert('Success', 'Cat removed successfully');
     },
     onError: (error: any) => {

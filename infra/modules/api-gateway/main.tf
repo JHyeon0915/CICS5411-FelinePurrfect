@@ -278,10 +278,13 @@ resource "aws_apigatewayv2_integration" "dashboard" {
   payload_format_version = "2.0"
 }
 
-resource "aws_apigatewayv2_route" "dashboard_analysis" {
+resource "aws_apigatewayv2_route" "dashboard_analytics" {
   api_id    = aws_apigatewayv2_api.main.id
-  route_key = "GET /dashboard/analysis"
+  route_key = "GET /dashboard/analytics"
   target    = "integrations/${aws_apigatewayv2_integration.dashboard.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 resource "aws_lambda_permission" "dashboard" {

@@ -103,8 +103,8 @@ module "api_gateway" {
   lambda_cats_name                  = module.lambda.cats_function_name
   lambda_logs_invoke_arn            = module.lambda.logs_invoke_arn
   lambda_logs_name                  = module.lambda.logs_function_name
-  lambda_dashboard_invoke_arn       = module.lambda.dashboard_analysis_invoke_arn
-  lambda_dashboard_name             = module.lambda.dashboard_analysis_function_name
+  lambda_dashboard_invoke_arn       = module.lambda.dashboard_analytics_invoke_arn
+  lambda_dashboard_name             = module.lambda.dashboard_analytics_function_name
   lambda_diseases_invoke_arn        = module.lambda.diseases_invoke_arn
   lambda_diseases_name              = module.lambda.diseases_function_name
   lambda_breed_detection_invoke_arn = module.lambda.breed_detection_invoke_arn
