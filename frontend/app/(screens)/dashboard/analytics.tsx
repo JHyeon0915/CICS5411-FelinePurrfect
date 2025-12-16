@@ -242,6 +242,24 @@ export default function DetailedAnalyticsScreen() {
                       style={{ borderRadius: 16, marginBottom: 16 }}
                     />
                   )}
+                  {peeData.length > 1 && (
+                    <LineChart
+                      data={{ labels: createLabels(pooData, last7Days), datasets: [{ data: peeData }] }}
+                      width={screenWidth - 80}
+                      height={200}
+                      chartConfig={{
+                        backgroundColor: '#fff',
+                        backgroundGradientFrom: '#fff',
+                        backgroundGradientTo: '#fff',
+                        decimalPlaces: 0,
+                        color: (opacity = 1) => `rgba(255, 204, 0, ${opacity})`,
+                        labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+                        propsForDots: { r: '6', strokeWidth: '2', stroke: '#FFCC00' },
+                      }}
+                      bezier
+                      style={{ borderRadius: 16, marginBottom: 16 }}
+                    />
+                  )}
                 </View>
               )}
 
